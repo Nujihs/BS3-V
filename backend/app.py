@@ -37,9 +37,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 # 获取项目根目录
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 输出目录路径
+# 输出目录路径（本地模式用于音频文件路由）
+# 注意：不在 import 阶段创建目录——Vercel Serverless 文件系统只读（/var/task），
+# 目录创建仅发生在本地启动（main() 中），音频在线上以 base64 内联返回
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'output')
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # 初始化转换器和认证管理器
 converter = JianpuToBDConverter()
