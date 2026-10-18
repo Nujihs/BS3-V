@@ -11,7 +11,43 @@ import os
 
 class BDGenerator:
     """BD谱生成器"""
-    
+
+    def _locate_background_image(self):
+        """
+        定位口琴背景图（双保险）：
+        1) 本地/仓库文件：public/static/images/image.png（本地运行、函数包含 public 时生效）
+        2) Serverless 兜底：从静态托管 URL 下载到 /tmp
+           （Vercel 将 public/ 作为静态资源托管，函数包 /var/task 可能不含该目录）
+        """
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)
+        candidates = [
+            os.path.join(project_root, 'public', 'static', 'images', 'image.png'),
+            os.path.join(project_root, 'backend', 'assets', 'harmonica_bg.png'),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+
+        # Serverless 兜底：从静态托管 URL 下载
+        try:
+            import requests
+            import tempfile
+            base = os.getenv('VERCEL_URL') or os.getenv('BG_IMAGE_BASE') or ''
+            if base:
+                base = base if base.startswith('http') else f'https://{base}'
+                url = f'{base}/static/images/image.png'
+                resp = requests.get(url, timeout=8)
+                if resp.status_code == 200 and resp.content[:8] == b'\x89PNG\r\n\x1a\n':
+                    p = os.path.join(tempfile.gettempdir(), 'harmonica_bg.png')
+                    with open(p, 'wb') as f:
+                        f.write(resp.content)
+                    print(f"[INFO] 已从静态托管下载口琴背景图: {url}")
+                    return p
+        except Exception as e:
+            print(f"[WARNING] 下载口琴背景图失败: {e}")
+        return None
+
     def __init__(self):
         # 口琴布局可视化
         self.harmonica_layout = {
@@ -26,15 +62,8 @@ class BDGenerator:
             9: {'blow': 'G5', 'draw': 'F5'},
             10: {'blow': 'C6', 'draw': 'A5'},
         }
-        # 口琴背景图片路径（使用绝对路径）
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(script_dir)
-        bg_image_path = os.path.join(project_root, 'public', 'static', 'images', 'image.png')
-        if os.path.exists(bg_image_path):
-            self.harmonica_background_image = bg_image_path
-        else:
-            self.harmonica_background_image = None
-            print(f"[WARNING] 口琴背景图片未找到: {bg_image_path}")
+        # 口琴背景图片（双保险定位：本地文件 / Serverless URL 下载）
+        self.harmonica_background_image = self._locate_background_image()
     
     def generate_text_notation(self, notes: List[dict]) -> str:
         """
