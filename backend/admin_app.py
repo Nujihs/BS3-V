@@ -53,9 +53,9 @@ def login_required(f):
 
 # ==================== 路由 ====================
 
-@app.route('/')
+@app.route('/', strict_slashes=False)
 def index():
-    """首页"""
+    """首页（strict_slashes=False：让 /admin 不带尾斜杠也能直达，避免 308 中间跳转）"""
     if 'admin_logged_in' in session:
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
