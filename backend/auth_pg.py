@@ -18,7 +18,9 @@ class AuthManager:
     """PostgreSQL 认证管理器"""
 
     def __init__(self):
-        self.init_user_table()
+        # 惰性初始化：不在 import 阶段连接数据库（Serverless 冷启动容错，
+        # 数据库暂不可用时函数仍可启动，连接延迟到首次调用）
+        pass
 
     def init_user_table(self):
         """确保表存在（幂等，schema 由 create_db.py / schema.sql 创建）"""

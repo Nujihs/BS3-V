@@ -13,7 +13,8 @@ class DatabaseManager:
     """PostgreSQL 数据库管理器"""
 
     def __init__(self):
-        self.init_db()
+        # 惰性初始化：不在 import 阶段连接数据库（Serverless 冷启动容错）
+        pass
 
     def init_db(self):
         """确保转换记录与会话表存在（幂等）"""
