@@ -14,6 +14,7 @@ handler(event, context) 请求结构转换为标准 WSGI environ，并回写响�
 
 import base64
 import io
+import json
 import os
 import sys
 from urllib.parse import unquote, parse_qsl, urlencode
@@ -112,30 +113,43 @@ def _looks_like_base64(s: str) -> bool:
 
 def handler(event: dict, context):
     """Vercel Python Runtime 入口"""
-    environ = _build_environ(event)
+    try:
+        environ = _build_environ(event)
 
-    status_holder = {}
+        status_holder = {}
 
-    def start_response(status, response_headers, exc_info=None):
-        status_holder['status'] = status
-        status_holder['headers'] = response_headers
+        def start_response(status, response_headers, exc_info=None):
+            status_holder['status'] = status
+            status_holder['headers'] = response_headers
 
-    body_iter = application(environ, start_response)
-    body = b''.join(body_iter)
+        body_iter = application(environ, start_response)
+        body = b''.join(body_iter)
 
-    status = status_holder.get('status', '200 OK')
-    status_code = int(status.split(' ')[0])
-    headers = {k: v for k, v in status_holder.get('headers', [])}
+        status = status_holder.get('status', '200 OK')
+        status_code = int(status.split(' ')[0])
+        headers = {k: v for k, v in status_holder.get('headers', [])}
 
-    content_type = headers.get('content-type', headers.get('Content-Type', '')).lower()
-    if 'image/' in content_type or 'audio/' in content_type:
+        content_type = headers.get('content-type', headers.get('Content-Type', '')).lower()
+        if 'image/' in content_type or 'audio/' in content_type:
+            return {
+                'statusCode': status_code,
+                'headers': {**headers, 'x-vercel-base64': '1'},
+                'body': base64.b64encode(body).decode('utf-8'),
+            }
         return {
             'statusCode': status_code,
-            'headers': {**headers, 'x-vercel-base64': '1'},
-            'body': base64.b64encode(body).decode('utf-8'),
+            'headers': headers,
+            'body': body.decode('utf-8', 'replace'),
         }
-    return {
-        'statusCode': status_code,
-        'headers': headers,
-        'body': body.decode('utf-8', 'replace'),
-    }
+    except Exception as e:
+        # 异常兜底：返回 JSON 错误详情，便于在前端/浏览器直接看到真实原因
+        import traceback
+        traceback.print_exc()
+        return {
+            'statusCode': 500,
+            'headers': {'content-type': 'application/json; charset=utf-8'},
+            'body': json.dumps({
+                'success': False,
+                'error': f'FUNCTION ERROR: {type(e).__name__}: {str(e)}',
+            }, ensure_ascii=False),
+        }
