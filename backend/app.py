@@ -488,6 +488,23 @@ def serve_audio(filename):
     return send_from_directory(OUTPUT_DIR, filename)
 
 
+@app.route('/api/debug/bg')
+def debug_bg():
+    """调试端点：查看口琴背景图加载状态"""
+    try:
+        bg = converter.bd_generator.harmonica_background_image
+        return jsonify({
+            'success': True,
+            'bg_path': bg,
+            'bg_exists': bool(bg and os.path.exists(bg)),
+            'vercel_url': os.getenv('VERCEL_URL'),
+            'bg_image_base': os.getenv('BG_IMAGE_BASE'),
+            'cwd': os.getcwd(),
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 def main():
     """启动应用"""
     # 确保必要的目录存在
