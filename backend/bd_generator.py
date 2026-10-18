@@ -30,22 +30,33 @@ class BDGenerator:
                 return p
 
         # Serverless 兜底：从静态托管 URL 下载
+        # 优先使用生产主域名（VERCEL_PROJECT_PRODUCTION_URL = 如 bs-3-v.vercel.app），
+        # 其次 BG_IMAGE_BASE，最后 VERCEL_URL（可能是带 hash 的预览 URL，不可靠）
         try:
             import requests
             import tempfile
-            base = os.getenv('VERCEL_URL') or os.getenv('BG_IMAGE_BASE') or ''
-            if base:
+            bases = []
+            for env in ('BG_IMAGE_BASE', 'VERCEL_PROJECT_PRODUCTION_URL', 'VERCEL_URL'):
+                v = os.getenv(env)
+                if v:
+                    bases.append(v)
+            for base in bases:
                 base = base if base.startswith('http') else f'https://{base}'
                 url = f'{base}/static/images/image.png'
-                resp = requests.get(url, timeout=8)
-                if resp.status_code == 200 and resp.content[:8] == b'\x89PNG\r\n\x1a\n':
-                    p = os.path.join(tempfile.gettempdir(), 'harmonica_bg.png')
-                    with open(p, 'wb') as f:
-                        f.write(resp.content)
-                    print(f"[INFO] 已从静态托管下载口琴背景图: {url}")
-                    return p
+                for attempt in (1, 2):
+                    try:
+                        resp = requests.get(url, timeout=15)
+                        if resp.status_code == 200 and resp.content[:8] == b'\x89PNG\r\n\x1a\n':
+                            p = os.path.join(tempfile.gettempdir(), 'harmonica_bg.png')
+                            with open(p, 'wb') as f:
+                                f.write(resp.content)
+                            print(f"[INFO] 已从静态托管下载口琴背景图: {url}")
+                            return p
+                        print(f"[WARNING] 下载口琴背景图 HTTP {resp.status_code}: {url}")
+                    except Exception as e:
+                        print(f"[WARNING] 下载口琴背景图失败(第{attempt}次): {e} url={url}")
         except Exception as e:
-            print(f"[WARNING] 下载口琴背景图失败: {e}")
+            print(f"[WARNING] 下载口琴背景图异常: {e}")
         return None
 
     def __init__(self):
