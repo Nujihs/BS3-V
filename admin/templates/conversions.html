@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}转换记录{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+            <i class="ri-music-2-line text-2xl text-blue-600 mr-3"></i>
+            <h3 class="text-xl font-bold text-gray-800">转换记录列表</h3>
+            <span class="ml-3 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                共 {{ total }} 条记录
+            </span>
+        </div>
+        {% if user_id %}
+        <a href="{{ url_for('conversions') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+            <i class="ri-arrow-left-line mr-2"></i>
+            返回全部
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- 表格 -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white table-hover">
+            <thead>
+                <tr class="bg-gray-50">
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调号</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">口琴类型</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conv in conversions %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900">#{{ conv.id }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                            {{ conv.key_signature or '未知' }}调
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900">{{ conv.harmonica_type or '未知' }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-500">{{ conv.username or '匿名' }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-500">
+                            {{ conv.created_at.strftime('%Y-%m-%d %H:%M') if conv.created_at else 'N/A' }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('view_conversion', conversion_id=conv.id) }}" 
+                               class="text-blue-600 hover:text-blue-800" title="查看">
+                                <i class="ri-eye-line text-lg"></i>
+                            </a>
+                            <form action="{{ url_for('delete_conversion', conversion_id=conv.id) }}" 
+                                  method="POST" 
+                                  class="inline"
+                                  onsubmit="return confirm('确定要删除这条转换记录吗？')">
+                                <button type="submit" 
+                                        class="text-red-600 hover:text-red-800" 
+                                        title="删除">
+                                    <i class="ri-delete-bin-line text-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                        <i class="ri-music-2-line text-6xl text-gray-300 mb-4"></i>
+                        <p>暂无转换记录</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- 分页 -->
+    {% if total_pages > 1 %}
+    <div class="flex items-center justify-between mt-6 pt-6 border-t">
+        <div class="text-sm text-gray-500">
+            显示第 {{ (page - 1) * 20 + 1 }} 到 {{ min(page * 20, total) }} 条，共 {{ total }} 条
+        </div>
+        <div class="flex space-x-2">
+            {% if page > 1 %}
+            <a href="{{ url_for('conversions', page=page-1, user_id=user_id) }}" 
+               class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+            {% endif %}
+            
+            {% for p in range(max(1, page-2), min(total_pages+1, page+3)) %}
+            <a href="{{ url_for('conversions', page=p, user_id=user_id) }}" 
+               class="px-4 py-2 rounded {{ 'bg-blue-600 text-white' if p == page else 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+                {{ p }}
+            </a>
+            {% endfor %}
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('conversions', page=page+1, user_id=user_id) }}" 
+               class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

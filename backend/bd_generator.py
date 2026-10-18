@@ -26,7 +26,7 @@ class BDGenerator:
             9: {'blow': 'G5', 'draw': 'F5'},
             10: {'blow': 'C6', 'draw': 'A5'},
         }
-        # 口琴背景图片路径（使用绝对路径，前端统一在 public/）
+        # 口琴背景图片路径（使用绝对路径）
         script_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(script_dir)
         bg_image_path = os.path.join(project_root, 'public', 'static', 'images', 'image.png')

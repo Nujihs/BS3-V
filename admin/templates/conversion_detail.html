@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}转换记录详情{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- 返回按钮 -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <a href="{{ url_for('conversions') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                    <i class="ri-arrow-left-line text-2xl"></i>
+                </a>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">转换记录详情</h3>
+                    <p class="text-gray-500">ID: #{{ conversion.id }}</p>
+                </div>
+            </div>
+            <form action="{{ url_for('delete_conversion', conversion_id=conversion.id) }}"
+                  method="POST"
+                  onsubmit="return confirm('确定要删除这条转换记录吗？')"
+                  class="inline">
+                <button type="submit"
+                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                    <i class="ri-delete-bin-line mr-2"></i>
+                    删除记录
+                </button>
+            </form>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">调号</p>
+                <p class="font-semibold text-gray-800">{{ conversion.key_signature or '未知' }}调</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">口琴类型</p>
+                <p class="font-semibold text-gray-800">{{ conversion.harmonica_type or '未知' }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">转换时间</p>
+                <p class="font-semibold text-gray-800">
+                    {{ conversion.created_at.strftime('%Y-%m-%d %H:%M') if conversion.created_at else 'N/A' }}
+                </p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">用户ID</p>
+                <p class="font-semibold text-gray-800">
+                    {{ conversion.user_id if conversion.user_id else '未知' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输入信息 -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center mb-4">
+            <i class="ri-file-text-line text-xl text-blue-600 mr-2"></i>
+            <h4 class="text-lg font-bold text-gray-800">输入内容</h4>
+        </div>
+
+        <div class="space-y-4">
+            {% if conversion.input_text %}
+            <div>
+                <p class="text-sm text-gray-500 mb-2">简谱文本</p>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <pre class="whitespace-pre-wrap text-sm text-gray-800">{{ conversion.input_text }}</pre>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if conversion.input_image %}
+            <div>
+                <p class="text-sm text-gray-500 mb-2">输入图片</p>
+                <img src="data:image/png;base64,{{ conversion.input_image }}"
+                     alt="输入图片"
+                     class="max-w-full h-auto rounded-lg border">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 输出信息 -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center mb-4">
+            <i class="ri-file-text-line text-xl text-blue-600 mr-2"></i>
+            <h4 class="text-lg font-bold text-gray-800">输出结果</h4>
+        </div>
+
+        <div class="space-y-4">
+            {% if conversion.bd_text %}
+            <div>
+                <p class="text-sm text-gray-500 mb-2">BD谱文本</p>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <pre class="whitespace-pre-wrap text-sm text-gray-800">{{ conversion.bd_text }}</pre>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if conversion.bd_image %}
+            <div>
+                <p class="text-sm text-gray-500 mb-2">口琴用孔示意图</p>
+                <img src="data:image/png;base64,{{ conversion.bd_image }}"
+                     alt="Harmonica Hole Diagram"
+                     class="max-w-full h-auto rounded-lg border">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 演奏分析 -->
+    {% if analysis %}
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center mb-4">
+            <i class="ri-bar-chart-line text-xl text-blue-600 mr-2"></i>
+            <h4 class="text-lg font-bold text-gray-800">演奏分析</h4>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% if analysis.difficulty %}
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">难度级别</p>
+                <p class="font-semibold text-gray-800">{{ analysis.difficulty }}</p>
+            </div>
+            {% endif %}
+
+            {% if analysis.notes %}
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">音符数量</p>
+                <p class="font-semibold text-gray-800">{{ analysis.notes }}</p>
+            </div>
+            {% endif %}
+
+            {% if analysis.techniques %}
+            <div class="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                <p class="text-sm text-gray-500 mb-2">技巧要求</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for technique in analysis.techniques %}
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {{ technique }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

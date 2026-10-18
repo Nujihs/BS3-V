@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}用户详情{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- 用户信息卡片 -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <a href="{{ url_for('users') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                    <i class="ri-arrow-left-line text-2xl"></i>
+                </a>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">用户详情</h3>
+                    <p class="text-gray-500">查看用户基本信息和活动记录</p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{{ url_for('change_password', user_id=user.id) }}"
+                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition">
+                    <i class="ri-key-line mr-2"></i>
+                    修改密码
+                </a>
+                <a href="{{ url_for('edit_user', user_id=user.id) }}"
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                    <i class="ri-edit-line mr-2"></i>
+                    编辑用户
+                </a>
+                <form action="{{ url_for('delete_user', user_id=user.id) }}"
+                      method="POST"
+                      onsubmit="return confirm('确定要删除这个用户吗？删除后将无法恢复！')"
+                      class="inline">
+                    <button type="submit"
+                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="ri-delete-bin-line mr-2"></i>
+                        删除用户
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 用户基本信息 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                        {{ user.username[0].upper() }}
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-xl font-bold text-gray-800">{{ user.username }}</h4>
+                        <p class="text-gray-500">ID: #{{ user.id }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">邮箱</p>
+                        <p class="font-semibold text-gray-800">{{ user.email or '未设置' }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">注册时间</p>
+                        <p class="font-semibold text-gray-800">
+                            {{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">最后登录</p>
+                        <p class="font-semibold text-gray-800">
+                            {{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '从未登录' }}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">转换记录数</p>
+                        <p class="font-semibold text-gray-800">{{ conversions | length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-6 text-white">
+                <h4 class="text-lg font-bold mb-4">活动统计</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/20 rounded-lg p-4">
+                        <p class="text-white/80 text-sm">总转换次数</p>
+                        <p class="text-3xl font-bold">{{ conversions | length }}</p>
+                    </div>
+                    <div class="bg-white/20 rounded-lg p-4">
+                        <p class="text-white/80 text-sm">账户状态</p>
+                        <p class="text-lg font-semibold">正常</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 转换记录 -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <i class="ri-music-2-line text-2xl text-blue-600 mr-3"></i>
+                <h3 class="text-xl font-bold text-gray-800">转换记录</h3>
+                <span class="ml-3 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                    共 {{ conversions | length }} 条
+                </span>
+            </div>
+            <a href="{{ url_for('conversions', user_id=user.id) }}"
+               class="text-blue-600 hover:text-blue-800">
+                查看全部 <i class="ri-arrow-right-line"></i>
+            </a>
+        </div>
+
+        {% if conversions %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调号</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">口琴类型</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">转换时间</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for conv in conversions %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-900">#{{ conv.id }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-900">{{ conv.key_signature or '未知' }}调</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-900">{{ conv.harmonica_type or '未知' }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-500">
+                                {{ conv.created_at.strftime('%Y-%m-%d %H:%M') if conv.created_at else 'N/A' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="{{ url_for('view_conversion', conversion_id=conv.id) }}"
+                               class="text-blue-600 hover:text-blue-800">
+                                <i class="ri-eye-line text-lg"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-500">
+            <i class="ri-music-2-line text-6xl text-gray-300 mb-4"></i>
+            <p>该用户暂无转换记录</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

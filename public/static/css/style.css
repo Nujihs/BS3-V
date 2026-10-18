@@ -1,0 +1,102 @@
+/* 简谱转换系统 - 自定义样式 */
+
+/* 小票样式增强 */
+.receipt-paper {
+    background: linear-gradient(to bottom, #ffffff 0%, #f9f9f9 100%);
+    position: relative;
+}
+
+.receipt-paper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(
+        90deg,
+        #000,
+        #000 2px,
+        transparent 2px,
+        transparent 4px
+    );
+    opacity: 0.1;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* 输入框焦点效果 */
+.input-field:focus {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 历史记录卡片悬停效果 */
+.receipt-card {
+    transform-style: preserve-3d;
+}
+
+.receipt-card:hover {
+    z-index: 10;
+}
+
+/* 按钮点击效果 */
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary:active {
+    transform: scale(0.98);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .grid {
+        gap: 1rem !important;
+    }
+    
+    .receipt-paper {
+        width: 100% !important;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    .receipt-paper {
+        box-shadow: none;
+    }
+}

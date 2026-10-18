@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
-"""BS3-Vercel 主应用全流程测试脚本（本地 PostgreSQL 实测）"""
+"""BS3-Vercel 主应用全流程测试脚本"""
 import json
+import re
 import base64
 import requests
 
@@ -23,7 +23,7 @@ def check(name, cond, detail=""):
 
 # 1. 首页
 r = requests.get(f"{BASE}/")
-check("GET / 首页", r.status_code == 200, r.status_code)
+check("GET / 首页", r.status_code == 200 and "简谱转换" in r.text or "Jianpu" in r.text or "口琴" in r.text, r.status_code)
 
 # 2. 注册
 r = requests.post(f"{BASE}/api/auth/register", json={
@@ -87,6 +87,7 @@ r = requests.get(f"{BASE}/api/conversions")
 check("未登录访问历史被拒", r.status_code == 401)
 
 # 9. 图片转换（未配置 OCR -> 应返回明确提示）
+import io as _io
 r = requests.post(f"{BASE}/api/convert/image",
                   files={"image": ("test.png", b"fake-image-bytes", "image/png")},
                   data={"key_signature": "C", "harmonica_type": "C"},

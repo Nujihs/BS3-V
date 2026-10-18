@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}仪表板{% endblock %}
+
+{% block content %}
+<!-- 统计卡片 - 移动端优化 -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-4 md:mb-8">
+    <div class="stat-card card rounded-lg shadow-lg p-3 md:p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-xs md:text-sm">用户总数</p>
+                <h3 class="text-2xl md:text-4xl font-bold mt-1 md:mt-2">{{ user_count }}</h3>
+            </div>
+            <div class="text-3xl md:text-5xl opacity-20">
+                <i class="ri-user-line"></i>
+            </div>
+        </div>
+        <div class="mt-2 md:mt-4 text-xs md:text-sm">
+            <i class="ri-arrow-up-line"></i>
+            <span>活跃用户</span>
+        </div>
+    </div>
+
+    <div class="stat-card card rounded-lg shadow-lg p-3 md:p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-xs md:text-sm">转换记录</p>
+                <h3 class="text-2xl md:text-4xl font-bold mt-1 md:mt-2">{{ conversion_count }}</h3>
+            </div>
+            <div class="text-3xl md:text-5xl opacity-20">
+                <i class="ri-music-2-line"></i>
+            </div>
+        </div>
+        <div class="mt-2 md:mt-4 text-xs md:text-sm">
+            <i class="ri-arrow-up-line"></i>
+            <span>总转换次数</span>
+        </div>
+    </div>
+
+    <div class="stat-card card rounded-lg shadow-lg p-3 md:p-6 text-white col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-xs md:text-sm">活跃会话</p>
+                <h3 class="text-2xl md:text-4xl font-bold mt-1 md:mt-2">{{ session_count }}</h3>
+            </div>
+            <div class="text-3xl md:text-5xl opacity-20">
+                <i class="ri-key-2-line"></i>
+            </div>
+        </div>
+        <div class="mt-2 md:mt-4 text-xs md:text-sm">
+            <i class="ri-time-line"></i>
+            <span>当前在线</span>
+        </div>
+    </div>
+</div>
+
+<!-- 图表区和最近活动 - 移动端优化 -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+    <div class="bg-white rounded-lg shadow-lg p-3 md:p-4 h-48 md:h-64">
+        <h3 class="text-sm md:text-base font-bold text-gray-800 mb-2">
+            <i class="ri-pie-chart-line mr-2"></i>
+            调号分布
+        </h3>
+        <div class="h-36 md:h-44">
+            <canvas id="keyChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-3 md:p-4 h-48 md:h-64">
+        <h3 class="text-sm md:text-base font-bold text-gray-800 mb-2">
+            <i class="ri-bar-chart-line mr-2"></i>
+            口琴类型分布
+        </h3>
+        <div class="h-36 md:h-44">
+            <canvas id="harmonicaChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-3 md:p-4 h-48 md:h-64 overflow-hidden">
+        <h3 class="text-sm md:text-base font-bold text-gray-800 mb-2">
+            <i class="ri-user-add-line mr-2"></i>
+            最近注册用户
+        </h3>
+        <div class="space-y-1 md:space-y-2 overflow-y-auto" style="max-height: 150px; max-height: 180px;">
+            {% for user in recent_users %}
+            <div class="flex items-center justify-between p-1 md:p-2 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <div class="w-6 h-6 md:w-8 md:h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm">
+                        {{ user.username[0].upper() }}
+                    </div>
+                    <div class="ml-1 md:ml-2">
+                        <p class="font-semibold text-gray-800 text-xs md:text-sm">{{ user.username }}</p>
+                        <p class="text-xs text-gray-500">{{ user.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('view_user', user_id=user.id) }}" class="text-blue-600 hover:text-blue-800">
+                    <i class="ri-arrow-right-line text-base md:text-lg"></i>
+                </a>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-2 md:py-4 text-xs md:text-sm">暂无用户</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-3 md:p-4 h-48 md:h-64 overflow-hidden">
+        <h3 class="text-sm md:text-base font-bold text-gray-800 mb-2">
+            <i class="ri-music-2-line mr-2"></i>
+            最近转换记录
+        </h3>
+        <div class="space-y-1 md:space-y-2 overflow-y-auto" style="max-height: 150px; max-height: 180px;">
+            {% for conv in recent_conversions %}
+            <div class="flex items-center justify-between p-1 md:p-2 bg-gray-50 rounded-lg">
+                <div>
+                    <p class="font-semibold text-gray-800 text-xs md:text-sm">{{ conv.key_signature or '未知' }}调</p>
+                    <p class="text-xs text-gray-500">{{ conv.harmonica_type or '未知' }} | {{ conv.created_at.strftime('%Y-%m-%d') }}</p>
+                </div>
+                <a href="{{ url_for('view_conversion', conversion_id=conv.id) }}" class="text-blue-600 hover:text-blue-800">
+                    <i class="ri-arrow-right-line text-base md:text-lg"></i>
+                </a>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-2 md:py-4 text-xs md:text-sm">暂无转换记录</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 获取统计数据并渲染图表
+fetch('/api/stats')
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const data = result.data;
+            
+            // 调号分布图
+            const keyCtx = document.getElementById('keyChart').getContext('2d');
+            new Chart(keyCtx, {
+                type: 'pie',
+                data: {
+                    labels: data.key_signature_stats.map(s => s.name + '调'),
+                    datasets: [{
+                        data: data.key_signature_stats.map(s => s.value),
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#f5576c',
+                            '#4facfe', '#00f2fe', '#43e97b', '#38f9d7'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 8,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 口琴类型分布图
+            const harmonicaCtx = document.getElementById('harmonicaChart').getContext('2d');
+            new Chart(harmonicaCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.harmonica_type_stats.map(s => s.name),
+                    datasets: [{
+                        label: '转换次数',
+                        data: data.harmonica_type_stats.map(s => s.value),
+                        backgroundColor: ['#667eea', '#764ba2']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

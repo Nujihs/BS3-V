@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test_transpose_correctness.py)",
+      "Bash(python test_key_transpose.py)",
+      "Bash(python -c ' *)",
+      "Bash(python test_full_dataset.py)",
+      "Bash(python test_full_perf.py)"
+    ]
+  }
+}

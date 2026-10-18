@@ -1,0 +1,3912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>简谱转换系统 · Jianpu to BD Converter</title>
+
+    <!-- Favicon - 会根据暗夜模式自动切换 -->
+    <link id="favicon" rel="icon" type="image/jpeg" href="/static/images/黒蝠.jpg?v=2">
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="/static/images/黒蝠.jpg?v=2">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- 登录/注册模态框样式 -->
+    <style>
+        #auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #auth-modal.active {
+            display: flex;
+        }
+
+        .auth-container {
+            background: #FFFFFF;
+            border: 2px solid #000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 380px;
+            width: 90%;
+            overflow: hidden;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+        }
+
+        .dark-mode .auth-container {
+            background: #1a1a1a;
+            border-color: #e4e4e7;
+        }
+
+        .auth-header {
+            background: #000;
+            padding: 24px;
+            text-align: center;
+            color: #fff;
+            border-bottom: 2px dashed #000;
+        }
+
+        .dark-mode .auth-header {
+            background: #e4e4e7;
+            color: #000;
+            border-bottom-color: #e4e4e7;
+        }
+
+        .auth-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        .auth-header p {
+            margin: 8px 0 0 0;
+            opacity: 0.8;
+            font-size: 13px;
+        }
+
+        .dark-mode .auth-header h2 {
+            color: #000 !important;
+        }
+
+        .dark-mode .auth-header p {
+            color: #333;
+            opacity: 1;
+        }
+
+        .auth-body {
+            padding: 28px 24px;
+        }
+
+        .dark-mode .auth-body {
+            background: #1a1a1a;
+        }
+
+        .auth-form-group {
+            margin-bottom: 18px;
+        }
+
+        .auth-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #000;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .dark-mode .auth-form-group label {
+            color: #e4e4e7;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            font-size: 15px;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .dark-mode .auth-input {
+            border-color: #e4e4e7;
+            background: #2a2a2a;
+            color: #e4e4e7;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: #000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+            background: #fafafa;
+        }
+
+        .dark-mode .auth-input:focus {
+            border-color: #e4e4e7;
+            box-shadow: 0 0 0 3px rgba(228, 228, 231, 0.2);
+            background: #333;
+        }
+
+        .auth-input::placeholder {
+            color: #999;
+            opacity: 0.7;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+            letter-spacing: 1px;
+        }
+
+        .dark-mode .auth-btn {
+            border-color: #e4e4e7;
+        }
+
+        .auth-btn-primary {
+            background: #000;
+            color: #fff;
+        }
+
+        .dark-mode .auth-btn-primary {
+            background: #e4e4e7;
+            color: #000;
+        }
+
+        .auth-btn-primary:hover {
+            background: #333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-mode .auth-btn-primary:hover {
+            background: #d4d4d8;
+            box-shadow: 0 4px 12px rgba(228, 228, 231, 0.3);
+        }
+
+        .auth-btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .auth-btn-secondary {
+            background: #fff;
+            color: #000;
+            margin-top: 12px;
+        }
+
+        .dark-mode .auth-btn-secondary {
+            background: #2a2a2a;
+            color: #e4e4e7;
+        }
+
+        .auth-btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        .dark-mode .auth-btn-secondary:hover {
+            background: #3a3a3a;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .dark-mode .auth-switch {
+            color: #e4e4e7;
+        }
+
+        .auth-switch a {
+            color: #000;
+        }
+
+        /* 头像上传模态框样式 */
+        #avatar-upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #avatar-upload-modal.active {
+            display: flex;
+        }
+
+        .avatar-upload-container {
+            background: #FFFFFF;
+            border: 2px solid #000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 400px;
+            width: 90%;
+            overflow: hidden;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+        }
+
+        .dark-mode .avatar-upload-container {
+            background: #1a1a1a;
+            border-color: #e4e4e7;
+        }
+
+        .avatar-upload-header {
+            background: #000;
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            border-bottom: 2px dashed #000;
+        }
+
+        .dark-mode .avatar-upload-header {
+            background: #e4e4e7;
+            color: #000;
+            border-bottom-color: #e4e4e7;
+        }
+
+        .avatar-upload-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .dark-mode .avatar-upload-header h2 {
+            color: #000 !important;
+        }
+
+        .avatar-upload-body {
+            padding: 24px;
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 3px solid #000;
+            overflow: hidden;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dark-mode .avatar-preview {
+            border-color: #e4e4e7;
+            background: #2a2a2a;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .avatar-preview .placeholder {
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .dark-mode .avatar-preview .placeholder {
+            color: #666;
+        }
+
+        .avatar-upload-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #000;
+            border-radius: 4px;
+            background: #fff;
+            color: #000;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+            margin-bottom: 12px;
+        }
+
+        .dark-mode .avatar-upload-btn {
+            border-color: #e4e4e7;
+            background: #2a2a2a;
+            color: #e4e4e7;
+        }
+
+        .avatar-upload-btn:hover {
+            background: #f5f5f5;
+            border-style: solid;
+        }
+
+        .dark-mode .avatar-upload-btn:hover {
+            background: #3a3a3a;
+            border-color: #e4e4e7;
+        }
+
+        .avatar-upload-error {
+            color: #EF4444;
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .avatar-upload-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .avatar-upload-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+            letter-spacing: 1px;
+        }
+
+        .dark-mode .avatar-upload-buttons button {
+            border-color: #e4e4e7;
+        }
+
+        .avatar-upload-buttons .btn-primary {
+            background: #000;
+            color: #fff;
+        }
+
+        .dark-mode .avatar-upload-buttons .btn-primary {
+            background: #e4e4e7;
+            color: #000;
+        }
+
+        .avatar-upload-buttons .btn-primary:hover {
+            background: #333;
+        }
+
+        .dark-mode .avatar-upload-buttons .btn-primary:hover {
+            background: #d4d4d8;
+        }
+
+        .avatar-upload-buttons .btn-secondary {
+            background: #fff;
+            color: #000;
+        }
+
+        .dark-mode .avatar-upload-buttons .btn-secondary {
+            background: #2a2a2a;
+            color: #e4e4e7;
+        }
+
+        .avatar-upload-buttons .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        .dark-mode .avatar-upload-buttons .btn-secondary:hover {
+            background: #3a3a3a;
+        }
+
+        .avatar-upload-buttons .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            border-bottom: 1px solid #000;
+        }
+
+        .dark-mode .auth-switch a {
+            color: #e4e4e7 !important;
+            border-bottom-color: #e4e4e7 !important;
+        }
+
+        .auth-switch a:hover {
+            background: #000;
+            color: #fff;
+            padding: 2px 4px;
+            border-bottom: none;
+        }
+
+        .dark-mode .auth-switch a:hover {
+            background: #3a3a3a;
+            color: #ffffff !important;
+        }
+
+        /* 关闭链接 - 强制样式覆盖 */
+        .auth-close-link {
+            color: #000 !important;
+        }
+
+        .dark-mode .auth-close-link {
+            color: #e4e4e7 !important;
+            text-decoration: underline;
+            text-decoration-color: #e4e4e7 !important;
+        }
+
+        .auth-close-link:hover {
+            background: #000;
+            color: #fff !important;
+            padding: 2px 4px;
+            text-decoration: none;
+        }
+
+        .dark-mode .auth-close-link:hover {
+            background: #3a3a3a;
+            color: #ffffff !important;
+        }
+
+        .auth-error {
+            background: #fff5f5;
+            border: 2px solid #ef4444;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+        }
+
+        .dark-mode .auth-error {
+            background: #3f1f1f;
+            border-color: #ef4444;
+            color: #ff9999;
+        }
+
+        .auth-loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* 用户头像和菜单样式 */
+        #user-avatar {
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        #user-avatar-btn:hover #user-avatar {
+            transform: scale(1.05);
+        }
+
+        #user-menu {
+            animation: fadeInUp 0.2s ease;
+            z-index: 100;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* 用户菜单动画 */
+        @keyframes menuFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(4px) translateY(-50%) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateY(-50%) scale(1);
+            }
+        }
+
+        @keyframes menuFadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0) translateY(-50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(4px) translateY(-50%) scale(0.95);
+            }
+        }
+
+        #user-menu button {
+            transition: background-color 0.2s ease;
+            font-family: 'Courier New', 'Courier Prime', monospace;
+        }
+    </style>
+    <style>
+        * {
+            font-family: 'Courier New', 'Courier Prime', monospace;
+        }
+        
+        .receipt-paper {
+            background-color: #FFFFFF;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .receipt-zigzag {
+            background: linear-gradient(135deg, transparent 10px, #FFFFFF 10px) no-repeat;
+        }
+        
+        .input-field {
+            background-color: #F5F5F5;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            background-color: #E8E8E8;
+        }
+        
+        .btn-primary {
+            background-color: #000;
+            color: #FFF;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background-color: #333;
+            transform: scale(1.02);
+        }
+        
+        .btn-primary:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #000;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f5f5f5;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary:disabled {
+            border-color: #999;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .dark-mode .btn-secondary {
+            color: #e4e4e7;
+            border-color: #e4e4e7;
+        }
+
+        .dark-mode .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-transparent {
+            background-color: transparent;
+            color: #000;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-transparent:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-transparent:disabled {
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .dark-mode .btn-transparent {
+            color: #e4e4e7;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .dark-mode .btn-transparent:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .dark-mode .btn-transparent:disabled {
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #52525b;
+        }
+        
+        .btn-gif {
+            background-color: transparent;
+            color: #000;
+            border: none;
+            padding: 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .btn-gif:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-gif:active {
+            transform: scale(0.95);
+        }
+
+        .btn-gif img {
+            width: 48px;
+            height: 48px;
+            display: block;
+            border-radius: 12px;
+        }
+
+        .btn-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .btn-gif-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 32px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-danger {
+            background-color: #EF4444;
+            color: #FFF;
+            border: 2px solid #EF4444;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            z-index: 10;
+        }
+        
+        .receipt-card:hover .btn-danger {
+            opacity: 1;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .tab-btn {
+            border: none;
+            background: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn.active {
+            border-bottom: 2px solid #000;
+            color: #000;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            color: #666;
+        }
+        
+        .bd-notation {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .receipt-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .receipt-card:hover {
+            transform: scale(1.02);
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* 暗夜模式样式 - 只转换背景 */
+        .dark-mode {
+            background-color: #000000 !important;
+        }
+
+        .dark-mode h1,
+        .dark-mode h2,
+        .dark-mode h3 {
+            color: #e4e4e7 !important;
+        }
+
+        /* 白色卡片内的文字保持深色 */
+        body .receipt-paper h2,
+        body .receipt-paper label,
+        body .receipt-paper h3 {
+            color: #000000 !important;
+        }
+
+        .dark-mode label {
+            color: #e4e4e7 !important;
+        }
+
+        .dark-mode #waveform-bars-bg div {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .dark-mode .btn-label {
+            color: #999 !important;
+        }
+
+        .dark-mode .btn-gif-icon {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: width 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .dark-mode .sidebar {
+            background-color: rgba(20, 20, 20, 0.98) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .dark-mode .sidebar .text-2xl,
+        .dark-mode .sidebar .font-bold {
+            color: #e4e4e7 !important;
+        }
+
+        /* 侧边栏标题颜色修复 */
+        .sidebar .text-gray-700 {
+            color: #000 !important;
+        }
+
+        .dark-mode .sidebar .text-gray-700 {
+            color: #e4e4e7 !important;
+        }
+
+        /* 浮动切换按钮 */
+        #floating-toggle-container button {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .dark-mode #floating-toggle-container button {
+            background-color: rgba(40, 40, 40, 0.95) !important;
+            color: #e4e4e7 !important;
+        }
+
+        .dark-mode #floating-toggle-container button:hover {
+            background-color: rgba(60, 60, 60, 0.95) !important;
+        }
+
+        /* 主内容区 */
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .main-content > * {
+            max-width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .main-content > * {
+                max-width: 800px;
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px !important;
+            }
+
+            .sidebar.collapsed {
+                width: 0 !important;
+                overflow: hidden !important;
+            }
+
+            .sidebar .text-2xl {
+                font-size: 16px;
+            }
+
+            .btn-gif img,
+            .btn-gif-icon {
+                width: 32px;
+                height: 32px;
+            }
+
+            .btn-label {
+                display: none;
+            }
+
+            /* 主内容区始终占满屏幕 */
+            .main-content-wrapper {
+                margin-left: 0 !important;
+                padding-left: 60px !important;
+                transition: padding-left 0.3s ease !important;
+            }
+
+            /* 侧边栏收起时移除padding */
+            .sidebar.collapsed ~ .main-content-wrapper {
+                padding-left: 0 !important;
+            }
+
+            .main-content > * {
+                max-width: 100%;
+            }
+
+            /* 欢迎区域始终在视口中心 */
+            #work-area {
+                min-height: 100vh !important;
+                position: relative !important;
+            }
+
+            /* 输入区域响应式 */
+            #input-section {
+                padding: 10px !important;
+                max-width: 95vw !important;
+            }
+
+            .query-bar {
+                padding: 8px !important;
+            }
+
+            /* 按钮栏响应式 */
+            .query-bar > div:last-of-type > .flex.items-center.justify-between {
+                flex-direction: column !important;
+                gap: 12px !important;
+                align-items: stretch !important;
+            }
+
+            .query-bar > div:last-of-type > .flex.items-center.justify-between > .flex {
+                width: 100% !important;
+                justify-content: center !important;
+                gap: 8px !important;
+                flex-wrap: wrap !important;
+            }
+
+            /* 按钮文字响应式 */
+            .btn-transparent {
+                padding: 8px 16px !important;
+                font-size: 14px !important;
+            }
+
+            /* 调号和口琴按钮响应式 */
+            #key-select-btn,
+            #harmonica-type-btn {
+                padding: 8px 12px !important;
+                font-size: 13px !important;
+            }
+
+            /* BD谱小票响应式调整 */
+            #receipt {
+                width: 280px !important;
+                min-height: auto !important;
+            }
+
+            /* 结果区域响应式 */
+            #result-section {
+                padding: 10px !important;
+            }
+
+            /* 模态框响应式调整 */
+            #history-modal-content,
+            #harmonica-scale-content {
+                max-width: 95vw !important;
+                padding: 16px !important;
+            }
+
+            #history-grid-modal {
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+
+            /* 历史记录卡片 */
+            .receipt-card {
+                width: 100% !important;
+                max-width: 280px !important;
+            }
+
+            /* 表格响应式 */
+            .overflow-x-auto {
+                overflow-x: auto !important;
+            }
+
+            /* 下拉菜单响应式 */
+            #key-dropdown,
+            #harmonica-dropdown {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                min-width: 200px !important;
+                max-width: 90vw !important;
+            }
+
+            /* 文字区域响应式 */
+            #jianpu-text {
+                min-height: 80px !important;
+                font-size: 14px !important;
+            }
+        }
+
+        /* 超小屏幕适配 */
+        @media (max-width: 480px) {
+            #receipt {
+                width: 260px !important;
+                padding: 12px !important;
+            }
+
+            .text-2xl {
+                font-size: 1.25rem !important;
+            }
+
+            .text-xl {
+                font-size: 1.125rem !important;
+            }
+
+            #welcome-text {
+                font-size: 20px !important;
+            }
+
+            #welcome-logo {
+                width: 60px !important;
+                height: 60px !important;
+            }
+
+            /* 按钮更小 */
+            .btn-transparent {
+                padding: 6px 12px !important;
+                font-size: 13px !important;
+            }
+
+            /* 输入框更小 */
+            #jianpu-text {
+                font-size: 13px !important;
+                min-height: 60px !important;
+            }
+        }
+
+        /* 星空背景容器 */
+        .starfield {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 150%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+        }
+
+        .dark-mode .starfield {
+            opacity: 1;
+            animation: rotateStarfield 120s linear infinite;
+        }
+
+        @keyframes rotateStarfield {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* 移动端触摸优化 */
+        @media (max-width: 768px) {
+            * {
+                -webkit-tap-highlight-color: transparent;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+
+            input,
+            textarea,
+            button {
+                -webkit-user-select: auto;
+                user-select: auto;
+            }
+
+            /* 改善滚动体验 */
+            .main-content {
+                -webkit-overflow-scrolling: touch;
+                overflow-y: auto;
+            }
+
+            /* 防止下拉刷新 */
+            body {
+                overscroll-behavior-y: contain;
+            }
+
+            /* 触摸反馈 */
+            button:active {
+                transform: scale(0.95) !important;
+            }
+        }
+
+        /* 暗夜模式下的输入框样式 */
+        .dark-mode .query-bar {
+            background-color: rgba(40, 40, 40, 0.9) !important;
+        }
+
+        /* 暗夜模式下的 ring 颜色 */
+        .dark-mode .query-bar[class*="ring-gray-200"] {
+            --tw-ring-color: rgba(255, 255, 255, 0.1);
+        }
+        .dark-mode .query-bar[class*="focus-within:ring-gray-300"] {
+            --tw-ring-opacity: 1;
+            --tw-ring-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 暗夜模式下的按钮样式 */
+        .dark-mode .btn-primary {
+            background-color: #e4e4e7 !important;
+            color: #000 !important;
+        }
+
+        .dark-mode .btn-primary:hover {
+            background-color: #d4d4d8 !important;
+        }
+
+        .dark-mode .btn-primary:disabled {
+            background-color: #52525b !important;
+            color: #a1a1aa !important;
+        }
+
+        /* 暗夜模式下的欢迎文字颜色 */
+        .dark-mode #welcome-text {
+            color: #e4e4e7 !important;
+        }
+
+        .dark-mode #welcome-hint {
+            color: #a1a1aa !important;
+        }
+
+        /* 星星样式 */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: var(--opacity-start);
+                transform: scale(1);
+            }
+            50% {
+                opacity: var(--opacity-end);
+                transform: scale(1.2);
+            }
+        }
+
+        /* 星星流动效果 */
+        .star-shooting {
+            position: absolute;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, white, transparent);
+            animation: shooting 3s ease-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes shooting {
+            0% {
+                transform: translateX(0) translateY(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(500px) translateY(300px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#F5F5F0]">
+    <!-- 星空背景 -->
+    <div id="starfield" class="starfield"></div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="auth-modal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2 id="auth-title">欢迎回来</h2>
+                <p id="auth-subtitle">登录以开始使用</p>
+            </div>
+            <div class="auth-body">
+                <div id="auth-error" class="auth-error hidden"></div>
+                
+                <!-- 登录表单 -->
+                <form id="login-form">
+                    <div class="auth-form-group">
+                        <label for="login-username">用户名</label>
+                        <input type="text" id="login-username" class="auth-input" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="auth-form-group">
+                        <label for="login-password">密码</label>
+                        <input type="password" id="login-password" class="auth-input" placeholder="请输入密码" required>
+                    </div>
+                    <div class="text-right mb-4">
+                        <a onclick="showForgotPassword()" style="color: #666; font-size: 13px; cursor: pointer; text-decoration: underline;" class="dark-mode:text-gray-400">忘记密码？</a>
+                    </div>
+                    <button type="submit" class="auth-btn auth-btn-primary" id="login-btn">
+                        登录
+                    </button>
+                    <button type="button" class="auth-btn auth-btn-secondary" onclick="showRegister()">
+                        没有账号？立即注册
+                    </button>
+                </form>
+
+                <!-- 注册表单 -->
+                <form id="register-form" class="hidden">
+                    <div class="auth-form-group">
+                        <label for="register-username">用户名</label>
+                        <input type="text" id="register-username" class="auth-input" placeholder="至少3个字符" required minlength="3">
+                    </div>
+                    <div class="auth-form-group">
+                        <label for="register-email">邮箱（可选）</label>
+                        <input type="email" id="register-email" class="auth-input" placeholder="example@email.com">
+                    </div>
+                    <div class="auth-form-group">
+                        <label for="register-password">密码</label>
+                        <input type="password" id="register-password" class="auth-input" placeholder="至少6个字符" required minlength="6">
+                    </div>
+                    <div class="auth-form-group">
+                        <label for="register-confirm-password">确认密码</label>
+                        <input type="password" id="register-confirm-password" class="auth-input" placeholder="再次输入密码" required>
+                    </div>
+                    <button type="submit" class="auth-btn auth-btn-primary" id="register-btn">
+                        注册
+                    </button>
+                    <button type="button" class="auth-btn auth-btn-secondary" onclick="showLogin()">
+                        已有账号？立即登录
+                    </button>
+                </form>
+
+                <!-- 忘记密码表单 - 第一步：输入用户名 -->
+                <form id="forgot-password-form" class="hidden">
+                    <div class="auth-form-group">
+                        <label for="forgot-username">用户名</label>
+                        <input type="text" id="forgot-username" class="auth-input" placeholder="请输入用户名" required>
+                    </div>
+                    <button type="submit" class="auth-btn auth-btn-primary" id="forgot-btn">
+                        下一步
+                    </button>
+                    <button type="button" class="auth-btn auth-btn-secondary" onclick="showLogin()">
+                        返回登录
+                    </button>
+                </form>
+
+                <!-- 忘记密码表单 - 第二步：设置新密码 -->
+                <form id="reset-password-form" class="hidden">
+                    <div class="auth-form-group">
+                        <label for="reset-password">新密码</label>
+                        <input type="password" id="reset-password" class="auth-input" placeholder="至少6个字符" required minlength="6">
+                    </div>
+                    <div class="auth-form-group">
+                        <label for="reset-confirm-password">确认新密码</label>
+                        <input type="password" id="reset-confirm-password" class="auth-input" placeholder="再次输入新密码" required>
+                    </div>
+                    <button type="submit" class="auth-btn auth-btn-primary" id="reset-btn">
+                        确认重置
+                    </button>
+                    <button type="button" class="auth-btn auth-btn-secondary" onclick="showForgotPassword()">
+                        返回上一步
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    <a onclick="closeAuthModal()" class="auth-close-link">关闭</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头像上传模态框 -->
+    <div id="avatar-upload-modal">
+        <div class="avatar-upload-container">
+            <div class="avatar-upload-header">
+                <h2>更换头像</h2>
+            </div>
+            <div class="avatar-upload-body">
+                <div class="avatar-preview">
+                    <img id="avatar-preview-img" src="" alt="头像预览">
+                    <div class="placeholder" id="avatar-preview-placeholder">
+                        选择图片<br>预览头像
+                    </div>
+                </div>
+                <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="previewAvatar(this)">
+                <button type="button" class="avatar-upload-btn" onclick="document.getElementById('avatar-file-input').click()">
+                    📷 选择图片
+                </button>
+                <div id="avatar-upload-error" class="avatar-upload-error"></div>
+                <div class="avatar-upload-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeAvatarUploadModal()">取消</button>
+                    <button type="button" class="btn-primary" id="avatar-save-btn" onclick="saveAvatar()" disabled>保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码模态框 -->
+    <div id="change-password-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">修改密码</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div id="change-password-message" class="hidden p-3 rounded-lg text-sm"></div>
+                <div>
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">当前密码</label>
+                    <input type="password" id="current-password" class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400" placeholder="请输入当前密码">
+                </div>
+                <div>
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">新密码</label>
+                    <input type="password" id="new-password" class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400" placeholder="请输入新密码（至少6字符）" minlength="6">
+                </div>
+                <div>
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">确认新密码</label>
+                    <input type="password" id="confirm-new-password" class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400" placeholder="请再次输入新密码" minlength="6">
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-b-2xl flex justify-end gap-3">
+                <button onclick="closeChangePasswordModal()" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">取消</button>
+                <button onclick="submitChangePassword()" id="change-password-submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音频波形背景 -->
+    <div id="waveform-background" class="fixed inset-0 pointer-events-none z-0 opacity-20">
+        <div id="waveform-bars-bg" style="position: fixed; bottom: 0; left: 0; right: 0; height: 100px; display: flex; align-items: flex-end; justify-content: center; gap: 4px;">
+            <!-- 波形条将通过JS生成 -->
+        </div>
+    </div>
+
+    <!-- 左侧固定导航栏 -->
+    <div class="sidebar collapsed fixed left-0 top-0 h-full w-20 bg-white/90 backdrop-blur-md border-r border-gray-200 z-50 flex flex-col items-center py-8 shadow-lg">
+        <!-- Logo -->
+        <div class="mb-4 cursor-pointer hover:opacity-80 transition-opacity" onclick="goToHome()">
+            <img id="logo-icon" src="/static/images/dark-bat.png" alt="Logo" style="width: 48px; height: 48px;">
+        </div>
+
+        <!-- 横写标题 -->
+        <div class="mb-4 text-center px-0.5">
+            <div class="font-bold text-[9px] leading-tight text-gray-700 dark:text-gray-200 whitespace-nowrap overflow-hidden">
+                口琴谱生成器
+            </div>
+            <div class="text-[7px] leading-none dark:text-gray-300 mt-0.5 text-gray-700 font-medium">
+                Jianpu to BD
+            </div>
+        </div>
+
+        <!-- 暗夜模式按钮 -->
+        <div class="flex flex-col gap-1 items-center mb-6">
+            <button onclick="toggleDarkMode()" id="dark-mode-btn" class="btn-gif">
+                <img id="dark-mode-icon" src="/static/images/light-mode.gif" alt="暗夜模式">
+            </button>
+            <span id="dark-mode-text" class="btn-label">暗夜模式</span>
+        </div>
+
+        <!-- 使用说明按钮 -->
+        <div class="flex flex-col gap-1 items-center">
+            <button onclick="toggleHarmonicaScale()" id="help-btn" class="btn-gif">
+                <span class="btn-gif-icon">📘</span>
+            </button>
+            <span class="btn-label">使用说明</span>
+        </div>
+
+        <!-- 历史记录按钮 -->
+        <div class="flex flex-col gap-1 items-center">
+            <button onclick="toggleHistoryModal()" id="history-btn" class="btn-gif">
+                <span class="btn-gif-icon">📋</span>
+            </button>
+            <span class="btn-label">历史记录</span>
+        </div>
+
+        <!-- 用户信息 -->
+        <div id="user-info" class="flex flex-col gap-1 items-center mt-auto mb-2">
+            <!-- 未登录时显示登录按钮 -->
+            <div id="login-section" class="flex flex-col gap-1 items-center">
+                <button onclick="showAuthModal(); showLogin();" id="login-btn" class="btn-gif">
+                    <span class="btn-gif-icon">🔐</span>
+                </button>
+                <span class="btn-label">登录</span>
+            </div>
+            <!-- 登录后显示用户头像和菜单 -->
+            <div id="logged-in-section" class="hidden flex flex-col gap-2 items-center">
+                <div class="relative">
+                    <button onclick="toggleUserMenu()" id="user-avatar-btn" class="relative flex items-center justify-center hover:opacity-75 transition-opacity">
+                        <div class="relative flex shrink-0 overflow-hidden rounded-full border-2 border-black dark:border-gray-300 size-10" id="user-avatar">
+                            <div class="flex items-center justify-center w-full h-full bg-black text-white dark:bg-gray-700 dark:text-white font-bold text-lg" id="user-avatar-text">
+                            </div>
+                        </div>
+                    </button>
+                    <!-- 用户菜单下拉 - 向右弹出 -->
+                    <div id="user-menu" class="hidden absolute top-1/2 -translate-y-1/2 left-full ml-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg shadow-black/5 overflow-hidden z-50 transition-all duration-200 ease-out">
+                        <div class="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" id="menu-username"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" id="menu-email"></p>
+                        </div>
+                        <div class="py-1">
+                            <button onclick="showAvatarUploadModal()" class="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-150 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500 dark:text-gray-400">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span>更换头像</span>
+                            </button>
+                            <button onclick="showChangePasswordModal()" class="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-150 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500 dark:text-gray-400">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                <span>修改密码</span>
+                            </button>
+                            <button onclick="clearAvatar()" class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                </svg>
+                                <span>清除头像</span>
+                            </button>
+                            <button onclick="logout()" class="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-150 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500 dark:text-gray-400">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>登出</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <span id="username-label" class="btn-label truncate" style="max-width: 60px;"></span>
+            </div>
+        </div>
+
+        <!-- 底部切换按钮 -->
+        <div class="flex justify-center pb-1 mt-2">
+            <button onclick="toggleSidebar()" id="sidebar-toggle-btn" class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-100 [&_svg]:shrink-0 select-none text-gray-600 hover:text-black hover:bg-gray-100 disabled:hover:text-gray-600 disabled:hover:bg-transparent [&_svg]:hover:text-black h-10 w-10 rounded-xl group/trigger shrink-0" type="button" data-sidebar="trigger" data-state="closed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-right">
+                    <path d="m6 17 5-5-5-5"></path>
+                    <path d="m13 17 5-5-5-5"></path>
+                </svg>
+                <span class="sr-only">切换侧边栏</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 浮动切换按钮容器（侧边栏收起时显示） -->
+    <div id="floating-toggle-container" class="hidden fixed left-2 bottom-8 z-50">
+        <button onclick="toggleSidebar()" class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium leading-[normal] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-100 [&_svg]:shrink-0 select-none text-gray-600 hover:text-black hover:bg-gray-100 disabled:hover:text-gray-600 disabled:hover:bg-transparent [&_svg]:hover:text-black h-10 w-10 rounded-xl group/trigger shrink-0 shadow-lg" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span class="sr-only">展开侧边栏</span>
+        </button>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content-wrapper ml-20 relative z-10">
+        <div class="main-content container mx-auto px-4 py-8 max-w-4xl">
+            <!-- 主内容区 -->
+            <div id="work-area" class="flex flex-col items-center justify-center min-h-[80vh]">
+                <!-- 初始状态：只显示Logo和竖写JBDC -->
+                <div id="welcome-section" class="flex flex-col items-center justify-center h-full cursor-pointer transition-all duration-300" onclick="showInputInterface()">
+                    <!-- Logo -->
+                    <div class="mb-8 opacity-90">
+                        <img id="welcome-logo" src="/static/images/dark-bat.png" alt="Logo" style="width: 120px; height: 120px;">
+                    </div>
+                    <!-- 竖写 JBDC -->
+                    <div id="welcome-text" class="text-6xl font-bold tracking-widest opacity-80 transition-opacity duration-300" style="writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0.5em;">
+                        JBDC
+                    </div>
+                    <!-- 提示文字 -->
+                    <div id="welcome-hint" class="mt-8 text-sm text-gray-500 opacity-60 transition-opacity duration-300">
+                        点击开始
+                    </div>
+                </div>
+
+                <!-- 输入界面 -->
+                <div id="input-section" class="hidden flex flex-col items-center justify-center w-full max-w-4xl relative">
+                    <!-- 返回按钮（右上角） -->
+                    <button onclick="resetToWelcome()" class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors opacity-0 hover:opacity-100 p-2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <!-- 倒计时提示 -->
+                    <div id="auto-return-hint" class="mb-4 text-xs text-gray-500 dark:text-gray-400 transition-opacity duration-300 opacity-0">
+                        无操作将在 <span id="countdown-timer">60</span> 秒后自动返回
+                    </div>
+
+                    <!-- 输入框容器 -->
+                    <div class="query-bar relative w-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md ring-1 ring-inset ring-gray-200 focus-within:ring-gray-300 transition-all duration-200 rounded-[var(--border-radius)] shadow-lg" style="--border-radius: 2.5rem;">
+                        <!-- 文件预览区 -->
+                        <div id="file-preview-area" class="w-full px-4 pt-3 hidden">
+                            <div id="file-preview-content" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- 文字输入区 -->
+                        <div class="w-full px-4 overflow-y-auto max-h-[400px]">
+                            <textarea id="jianpu-text"
+                                class="w-full px-2 bg-transparent focus:outline-none text-gray-900 dark:text-gray-100 min-h-[100px] py-4 resize-none"
+                                placeholder="输入简谱，例如: 1 2 3 5 | 5 3 2 1 |"></textarea>
+                        </div>
+
+                        <!-- 底部按钮栏 -->
+                        <div class="flex items-center justify-between border-t border-transparent p-2">
+                            <div class="flex items-center gap-1.5">
+                                <!-- 附件按钮 -->
+                                <div class="flex items-center">
+                                    <button onclick="document.getElementById('image-upload').click()" class="inline-flex items-center justify-center text-sm font-medium cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent h-10 w-10 rounded-full transition-colors text-gray-600 dark:text-white" type="button" aria-label="附件">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="stroke-2 text-current">
+                                            <path d="M10 9V15C10 16.1046 10.8954 17 12 17V17C13.1046 17 14 16.1046 14 15V7C14 4.79086 12.2091 3 10 3V3C7.79086 3 6 4.79086 6 7V15C6 18.3137 8.68629 21 12 21V21C15.3137 21 18 18.3137 18 15V8" stroke="currentColor"></path>
+                                        </svg>
+                                    </button>
+                                    <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                                </div>
+
+                                <!-- 调号选择 -->
+                                <div class="flex items-center relative">
+                                    <button id="key-select-btn" onclick="toggleKeyDropdown(event)" class="inline-flex items-center justify-center gap-2 font-medium cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent h-10 px-3.5 py-1.5 text-sm rounded-full text-gray-700 dark:text-white transition-colors" type="button">
+                                        <span class="truncate text-sm font-semibold">调号</span>
+                                        <span class="flex items-center">
+                                            <span id="selected-key" class="text-xs">C调</span>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="stroke-2 size-4 transition-transform">
+                                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="square"></path>
+                                            </svg>
+                                        </span>
+                                    </button>
+                                    <!-- 调号下拉菜单（移出query-bar，使用fixed定位） -->
+                                </div>
+
+                                <!-- 口琴类型选择 -->
+                                <div class="flex items-center relative">
+                                    <button id="harmonica-type-btn" onclick="toggleHarmonicaDropdown(event)" class="inline-flex items-center justify-center gap-2 font-medium cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent h-10 px-3.5 py-1.5 text-sm rounded-full text-gray-700 dark:text-white transition-colors" type="button">
+                                        <span class="truncate text-sm font-semibold">口琴</span>
+                                        <span class="flex items-center">
+                                            <span id="selected-harmonica" class="text-xs">标准C</span>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="stroke-2 size-4 transition-transform">
+                                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="square"></path>
+                                            </svg>
+                                        </span>
+                                    </button>
+                                    <!-- 口琴类型下拉菜单（移出query-bar，使用fixed定位） -->
+                                </div>
+                            </div>
+
+                            <div class="flex items-end gap-0.5">
+                                <!-- 转换按钮 -->
+                                <button id="convert-btn" onclick="convertJianpu()" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors" aria-label="转换">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 11L12 5M12 5L18 11M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="square"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 外部下拉菜单容器（fixed定位） -->
+                    <div id="key-dropdown" class="hidden fixed bg-white dark:bg-[#1f2937] rounded-xl shadow-xl border border-gray-200 dark:border-gray-600 py-2 z-[100] min-w-[150px]">
+                        <button onclick="selectKey('C', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">C调</button>
+                        <button onclick="selectKey('G', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">G调</button>
+                        <button onclick="selectKey('D', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">D调</button>
+                        <button onclick="selectKey('F', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">F调</button>
+                        <button onclick="selectKey('Bb', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">降B调</button>
+                        <button onclick="selectKey('Am', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">A小调</button>
+                        <button onclick="selectKey('Em', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">E小调</button>
+                        <button onclick="selectKey('Dm', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">D小调</button>
+                    </div>
+
+                    <div id="harmonica-dropdown" class="hidden fixed bg-white dark:bg-[#1f2937] rounded-xl shadow-xl border border-gray-200 dark:border-gray-600 py-2 z-[100] min-w-[150px]">
+                        <button onclick="selectHarmonica('C', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">标准C调</button>
+                        <button onclick="selectHarmonica('LowC', event)" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-100">低音C调</button>
+                    </div>
+
+                    <!-- 提示文字 -->
+                    <div class="relative group mt-4 mx-auto w-fit">
+                        <div class="flex items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1.5">
+                            <span>简谱格式：1-7 (中音) | 1.-7. (低音) | .1-.7 (高音) | 0/- (休止) | | (小节线)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 已转换状态：显示结果 -->
+                <div id="result-section" class="hidden w-full flex flex-col items-center">
+                    <!-- 顶部操作按钮 -->
+                    <div class="flex gap-4 mb-8">
+                        <button class="btn-transparent px-6 py-2 rounded-full" onclick="resetToInput()">
+                            ← 返回输入
+                        </button>
+                    </div>
+
+                    <!-- BD谱小票容器 -->
+                    <div class="flex justify-center">
+                        <div class="relative">
+                            <div id="receipt" class="receipt-paper p-6" style="width: 300px; min-height: 500px;">
+                                <!-- BD谱小票头部 -->
+                                <div class="text-center mb-4">
+                                    <div class="text-2xl font-bold mb-1" style="letter-spacing: 2px;">BD NOTATION</div>
+                                    <div class="text-xs mb-1">口琴谱生成器</div>
+                                    <div class="text-xs">Harmonica Sheet Music</div>
+                                    <div id="receipt-key-signature" class="text-sm mt-3 font-bold text-red-700"></div>
+                                </div>
+
+                                <!-- 分隔线 -->
+                                <div class="border-t-2 border-dashed border-black mt-4 mb-4"></div>
+
+                                <!-- 日期 -->
+                                <div class="text-xs mb-4 text-center font-bold">
+                                    DATE: <span id="receipt-date"></span>
+                                </div>
+
+                                <!-- 分隔线 -->
+                                <div class="border-t border-dashed border-black mt-4 mb-4"></div>
+
+                                <!-- BD谱内容 -->
+                                <div id="bd-content" class="mb-4 text-sm">
+                                    <div class="text-center text-gray-400 py-8">
+                                        BD谱将显示在这里
+                                    </div>
+                                </div>
+
+                                <!-- 分隔线 -->
+                                <div class="border-t border-dashed border-black mt-4 mb-6"></div>
+
+                                <!-- 演奏分析 -->
+                                <div id="analysis-section" class="hidden">
+                                    <div class="text-xs mb-3 font-bold">ANALYSIS:</div>
+                                    <div id="analysis-content" class="text-xs space-y-2"></div>
+                                </div>
+
+                                <!-- 分隔线 -->
+                                <div class="border-t border-dashed border-black mt-4 mb-6"></div>
+
+                                <!-- 口琴孔位图示 -->
+                                <div id="harmonica-diagram-section" class="hidden">
+                                    <div class="text-xs mb-2 font-bold text-center">HARMONICA HOLES:</div>
+                                    <div class="flex justify-center">
+                                        <img id="harmonica-diagram-img" class="w-full h-auto" style="max-width: 260px;" alt="口琴孔位图示">
+                                    </div>
+                                </div>
+
+                                <!-- 分隔线 -->
+                                <div class="border-t border-dashed border-black mt-4 mb-6"></div>
+
+                                <!-- 底部信息 -->
+                                <div class="text-center text-xs mb-4">
+                                    <div class="font-bold mb-1">Happy Playing!</div>
+                                    <div class="text-gray-600">享受音乐时光</div>
+                                </div>
+
+                                <!-- 分隔线 -->
+                                <div class="border-t border-dashed border-black mt-4 mb-4"></div>
+
+                                <!-- 二维码占位 -->
+                                <div class="flex justify-center mb-4">
+                                    <div class="w-20 h-20 bg-gradient-to-br from-black to-gray-800 flex items-center justify-center">
+                                        <span class="text-white text-2xl">♩</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 音频预览区 -->
+                    <div id="audio-preview-section" class="hidden w-full max-w-[300px] mt-6">
+                        <div class="receipt-paper p-5 border-2 border-gray-200 rounded-2xl">
+                            <h3 class="text-lg font-bold mb-3 text-black text-center">音频预览</h3>
+
+                            <!-- 音频播放器 -->
+                            <div id="audio-player-container" class="mb-4">
+                                <!-- 音频元素将通过JS动态创建 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 底部下载按钮区 -->
+                    <div class="flex gap-4 mt-8">
+                        <button id="download-receipt-btn" class="btn-transparent px-8 py-3 rounded-full" disabled>
+                            ⬇ 下载BD谱
+                        </button>
+                        <button id="download-audio-btn" class="btn-transparent px-8 py-3 rounded-full">
+                            ⬇ 下载音频
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="mt-16 text-center text-gray-500 text-sm">
+            <p>Made for Harmonica Players · Made with Nujihs</p>
+        </div>
+    </div>
+    </div>
+
+    <!-- 历史记录模态框 -->
+    <div id="history-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4">
+        <div id="history-modal-content" class="receipt-paper p-8 border-2 border-black max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-black">转换历史 · HISTORY</h2>
+                <button onclick="toggleHistoryModal()" class="text-3xl hover:text-gray-600">&times;</button>
+            </div>
+
+            <div class="mb-4 text-right">
+                <div class="text-sm text-gray-500">共 <span id="history-count-modal">0</span> 条记录</div>
+            </div>
+
+            <div id="history-grid-modal" class="flex flex-wrap justify-center gap-6">
+                <!-- 历史记录卡片将在这里动态生成 -->
+                <div class="text-center text-gray-400 w-full py-12">
+                    <div class="text-6xl mb-4">📝</div>
+                    <p>暂无转换记录</p>
+                    <p class="text-sm">开始转换简谱以查看历史</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明模态框 -->
+    <div id="harmonica-scale-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4">
+        <div id="harmonica-scale-content" class="receipt-paper p-8 border-2 border-black max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-black">使用说明 · GUIDE</h2>
+                <button onclick="toggleHarmonicaScale()" class="text-3xl hover:text-gray-600">&times;</button>
+            </div>
+
+            <div class="space-y-6 text-sm">
+                <div>
+                    <h3 class="font-bold mb-3 text-lg">1. 简谱输入格式</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>中音: 1 2 3 4 5 6 7</li>
+                        <li>高音: .1 .2 .3 (数字前加点)</li>
+                        <li>低音: 1. 2. 3. (数字后加点)</li>
+                        <li>休止符: 0 或 -</li>
+                        <li>小节线: |</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold mb-3 text-lg">2. BD谱说明</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>数字: 表示孔号 (1-10)</li>
+                        <li>B: 表示吹气 (Blow)</li>
+                        <li>D: 表示吸气 (Draw)</li>
+                        <li>-: 表示休止</li>
+                        <li>[X]: 表示超出音域</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold mb-3 text-lg">3. 示例</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="font-bold mb-2">小星星：</p>
+                        <code>1 1 5 5 | 6 6 5 - | 4 4 3 3 | 2 2 1 - |</code>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn-primary w-full" onclick="loadExample(); toggleHarmonicaScale();">
+                            ⬇ 加载示例
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t-2 border-gray-200">
+                    <h3 class="font-bold mb-4 text-lg">4. 口琴音阶表 · HARMONICA SCALE</h3>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- 标准C调 -->
+                        <div>
+                            <h4 class="font-bold mb-3">标准C调 (Standard C)</h4>
+                            <div class="overflow-x-auto border border-gray-300 rounded">
+                                <table class="w-full text-xs border-collapse">
+                                    <thead>
+                                        <tr class="border-b-2 border-black">
+                                            <th class="py-2 px-2">孔位</th>
+                                            <th class="py-2 px-2">吹 (B)</th>
+                                            <th class="py-2 px-2">吸 (D)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">1</td>
+                                            <td class="py-2 px-2 text-center">C4</td>
+                                            <td class="py-2 px-2 text-center">D4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">2</td>
+                                            <td class="py-2 px-2 text-center">E4</td>
+                                            <td class="py-2 px-2 text-center">G4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">3</td>
+                                            <td class="py-2 px-2 text-center">G4</td>
+                                            <td class="py-2 px-2 text-center">B4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">4</td>
+                                            <td class="py-2 px-2 text-center">C5</td>
+                                            <td class="py-2 px-2 text-center">D5</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">5</td>
+                                            <td class="py-2 px-2 text-center">E5</td>
+                                            <td class="py-2 px-2 text-center">F5</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">6</td>
+                                            <td class="py-2 px-2 text-center">G5</td>
+                                            <td class="py-2 px-2 text-center">A5</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">7</td>
+                                            <td class="py-2 px-2 text-center">C6</td>
+                                            <td class="py-2 px-2 text-center">B5</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">8</td>
+                                            <td class="py-2 px-2 text-center">E6</td>
+                                            <td class="py-2 px-2 text-center">D6</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">9</td>
+                                            <td class="py-2 px-2 text-center">G6</td>
+                                            <td class="py-2 px-2 text-center">F6</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">10</td>
+                                            <td class="py-2 px-2 text-center">C7</td>
+                                            <td class="py-2 px-2 text-center">A6</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-600">
+                                <strong>音域：</strong> C4 ~ C7<br>
+                                <strong>适用：</strong> 中音、高音声部
+                            </div>
+                        </div>
+
+                        <!-- 低音C调 -->
+                        <div>
+                            <h4 class="font-bold mb-3">低音C调 (Low C)</h4>
+                            <div class="overflow-x-auto border border-gray-300 rounded">
+                                <table class="w-full text-xs border-collapse">
+                                    <thead>
+                                        <tr class="border-b-2 border-black">
+                                            <th class="py-2 px-2">孔位</th>
+                                            <th class="py-2 px-2">吹 (B)</th>
+                                            <th class="py-2 px-2">吸 (D)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">1</td>
+                                            <td class="py-2 px-2 text-center">C3</td>
+                                            <td class="py-2 px-2 text-center">D3</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">2</td>
+                                            <td class="py-2 px-2 text-center">E3</td>
+                                            <td class="py-2 px-2 text-center">G3</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">3</td>
+                                            <td class="py-2 px-2 text-center">G3</td>
+                                            <td class="py-2 px-2 text-center">B3</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">4</td>
+                                            <td class="py-2 px-2 text-center">C4</td>
+                                            <td class="py-2 px-2 text-center">D4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">5</td>
+                                            <td class="py-2 px-2 text-center">E4</td>
+                                            <td class="py-2 px-2 text-center">F4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">6</td>
+                                            <td class="py-2 px-2 text-center">G4</td>
+                                            <td class="py-2 px-2 text-center">A4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">7</td>
+                                            <td class="py-2 px-2 text-center">C5</td>
+                                            <td class="py-2 px-2 text-center">B4</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">8</td>
+                                            <td class="py-2 px-2 text-center">E5</td>
+                                            <td class="py-2 px-2 text-center">D5</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">9</td>
+                                            <td class="py-2 px-2 text-center">G5</td>
+                                            <td class="py-2 px-2 text-center">F5</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-300">
+                                            <td class="py-2 px-2 text-center font-bold">10</td>
+                                            <td class="py-2 px-2 text-center">C6</td>
+                                            <td class="py-2 px-2 text-center">A5</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-600">
+                                <strong>音域：</strong> C3 ~ C6<br>
+                                <strong>适用：</strong> 高音声部（避免与中音口琴冲突）
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentTab = 'text';
+        let uploadedImage = null;
+        let currentRecordId = null;
+        let currentKeySignature = 'C';
+        let currentHarmonicaType = 'C';
+        let isDarkMode = false;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化侧边栏
+            initSidebar();
+
+            // 窗口大小改变时重新初始化侧边栏
+            window.addEventListener('resize', function() {
+                initSidebar();
+            });
+
+            // 加载暗夜模式设置
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+                updateDarkModeButton();
+            }
+
+            // 初始化星空
+            initStarfield();
+
+            updateDate();
+            loadHistory();
+
+            // 全局点击事件：点击外部关闭下拉菜单
+            document.addEventListener('click', function(event) {
+                const keyDropdown = document.getElementById('key-dropdown');
+                const harmonicaDropdown = document.getElementById('harmonica-dropdown');
+                const keyBtn = document.getElementById('key-select-btn');
+                const harmonicaBtn = document.getElementById('harmonica-type-btn');
+
+                // 检查点击是否在下拉菜单外部
+                if (!keyDropdown.contains(event.target) && !keyBtn.contains(event.target)) {
+                    keyDropdown.classList.add('hidden');
+                }
+
+                if (!harmonicaDropdown.contains(event.target) && !harmonicaBtn.contains(event.target)) {
+                    harmonicaDropdown.classList.add('hidden');
+                }
+            });
+
+            // 监听输入区域的用户活动，重置自动返回计时器
+            const queryBar = document.querySelector('.query-bar');
+            if (queryBar) {
+                // 监听键盘输入
+                queryBar.addEventListener('input', resetAutoReturnTimer);
+                queryBar.addEventListener('keydown', resetAutoReturnTimer);
+
+                // 监听鼠标点击和移动
+                queryBar.addEventListener('click', resetAutoReturnTimer);
+                queryBar.addEventListener('mousemove', resetAutoReturnTimer);
+
+                // 监听焦点变化
+                queryBar.addEventListener('focusin', resetAutoReturnTimer);
+            }
+        });
+
+        // 切换暗夜模式
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            updateDarkModeButton();
+
+            // 更新波形背景颜色
+            const waveformBars = document.getElementById('waveform-bars-bg');
+            if (waveformBars) {
+                const bars = waveformBars.querySelectorAll('div');
+                bars.forEach(bar => {
+                    if (isDarkMode) {
+                        bar.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                    } else {
+                        bar.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+                    }
+                });
+            }
+        }
+
+        // 更新暗夜模式按钮显示
+        function updateDarkModeButton() {
+            const icon = document.getElementById('dark-mode-icon');
+            const text = document.getElementById('dark-mode-text');
+            const logoIcon = document.getElementById('logo-icon');
+            const welcomeLogo = document.getElementById('welcome-logo');
+            const favicon = document.getElementById('favicon');
+            const appleTouchIcon = document.getElementById('apple-touch-icon');
+
+            if (isDarkMode) {
+                icon.src = "/static/images/dark-mode.gif";
+                text.textContent = '日间模式';
+                logoIcon.src = "/static/images/light-fish.png";
+                if (welcomeLogo) {
+                    welcomeLogo.src = "/static/images/light-fish.png";
+                }
+                if (favicon) {
+                    favicon.href = "/static/images/白鱼.jpg?v=2";
+                }
+                if (appleTouchIcon) {
+                    appleTouchIcon.href = "/static/images/白鱼.jpg?v=2";
+                }
+            } else {
+                icon.src = "/static/images/light-mode.gif";
+                text.textContent = '暗夜模式';
+                logoIcon.src = "/static/images/dark-bat.png";
+                if (welcomeLogo) {
+                    welcomeLogo.src = "/static/images/dark-bat.png";
+                }
+                if (favicon) {
+                    favicon.href = "/static/images/黒蝠.jpg?v=2";
+                }
+                if (appleTouchIcon) {
+                    appleTouchIcon.href = "/static/images/黒蝠.jpg?v=2";
+                }
+            }
+        }
+        
+        // 更新日期
+        function updateDate() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            document.getElementById('receipt-date').textContent = dateStr;
+        }
+        
+        // 切换选项卡（已废弃，保留兼容性）
+        function switchTab(tab) {
+            currentTab = tab;
+            // 新界面不需要选项卡切换，此函数保留但不使用
+        }
+        
+        // 处理图片上传
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage = e.target.result;
+                    document.getElementById('preview-img').src = uploadedImage;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                    document.getElementById('jianpu-text').value = ''; // 清空文字输入
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 加载示例
+        function loadExample() {
+            document.getElementById('jianpu-text').value = '1 1 5 5 | 6 6 5 - | 4 4 3 3 | 2 2 1 - |';
+            switchTab('text');
+        }
+        
+        // 转换简谱
+        async function convertJianpu() {
+            const btn = document.getElementById('convert-btn');
+
+            const text = document.getElementById('jianpu-text').value.trim();
+
+            if (!text && !uploadedImage) {
+                alert('请输入简谱或上传图片');
+                return;
+            }
+
+            // 显示加载状态
+            btn.innerHTML = `
+                <svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+                    <path d="M12 2C6.477 2 2 6.477 2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+            `;
+            btn.disabled = true;
+
+            try {
+                let result;
+
+                if (uploadedImage) {
+                    // 图片上传转换
+                    const formData = new FormData();
+                    formData.append('image', dataURLtoFile(uploadedImage, 'jianpu.png'));
+                    formData.append('key_signature', currentKeySignature);
+                    formData.append('harmonica_type', currentHarmonicaType);
+
+                    // 如果已登录，添加认证头
+                    const headers = {};
+                    if (authToken) {
+                        headers['Authorization'] = `Bearer ${authToken}`;
+                    }
+
+                    const response = await fetch('/api/convert/image', {
+                        method: 'POST',
+                        headers: headers,
+                        body: formData
+                    });
+
+                    result = await response.json();
+                } else {
+                    // 文字输入转换
+                    const headers = {
+                        'Content-Type': 'application/json'
+                    };
+                    // 如果已登录，添加认证头
+                    if (authToken) {
+                        headers['Authorization'] = `Bearer ${authToken}`;
+                    }
+
+                    const response = await fetch('/api/convert/text', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            text: text,
+                            key_signature: currentKeySignature,
+                            harmonica_type: currentHarmonicaType
+                        })
+                    });
+
+                    result = await response.json();
+                }
+
+                if (result.success) {
+                    // 切换到结果显示
+                    showResultSection();
+
+                    updateReceipt(result.data);
+                    currentRecordId = result.data.id;
+                    loadHistory();
+                } else {
+                    alert('转换失败: ' + result.error);
+                }
+            } catch (error) {
+                console.error('转换错误:', error);
+                alert('转换失败: ' + error.message);
+            } finally {
+                // 恢复按钮状态
+                btn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 11L12 5M12 5L18 11M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="square"></path>
+                    </svg>
+                `;
+                btn.disabled = false;
+            }
+        }
+
+        // 显示结果区域
+        function showResultSection() {
+            const inputSection = document.getElementById('input-section');
+            const resultSection = document.getElementById('result-section');
+
+            inputSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+
+            // 清除自动返回计时器（结果界面不需要自动返回）
+            clearAutoReturnTimer();
+        }
+
+        // 显示输入界面
+        let autoReturnTimer = null;
+        let countdownTimer = null;
+        const AUTO_RETURN_DELAY = 60000; // 1分钟 = 60000毫秒
+
+        function showInputInterface() {
+            const welcomeSection = document.getElementById('welcome-section');
+            const inputSection = document.getElementById('input-section');
+
+            welcomeSection.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+
+            // 显示倒计时提示
+            const hint = document.getElementById('auto-return-hint');
+            hint.style.opacity = '1';
+
+            // 启动自动返回计时器
+            startAutoReturnTimer();
+        }
+
+        // 返回欢迎界面（从输入界面）
+        function resetToWelcome() {
+            const welcomeSection = document.getElementById('welcome-section');
+            const inputSection = document.getElementById('input-section');
+
+            welcomeSection.classList.remove('hidden');
+            inputSection.classList.add('hidden');
+
+            // 清空输入
+            document.getElementById('jianpu-text').value = '';
+            document.getElementById('file-preview-area').classList.add('hidden');
+            document.getElementById('file-preview-content').innerHTML = '';
+            uploadedImage = null;
+
+            // 清除自动返回计时器
+            clearAutoReturnTimer();
+        }
+
+        // 返回输入界面（从结果界面）
+        function resetToInput() {
+            const welcomeSection = document.getElementById('welcome-section');
+            const inputSection = document.getElementById('input-section');
+            const resultSection = document.getElementById('result-section');
+
+            welcomeSection.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+
+            // 清空结果显示
+            document.getElementById('bd-content').innerHTML = '<div class="text-center text-gray-400 py-8">BD谱将显示在这里</div>';
+            document.getElementById('analysis-section').classList.add('hidden');
+            document.getElementById('harmonica-diagram-section').classList.add('hidden');
+            document.getElementById('receipt-key-signature').textContent = '';
+            document.getElementById('download-receipt-btn').disabled = true;
+            document.getElementById('audio-preview-section').classList.add('hidden');
+
+            // 启动自动返回计时器
+            startAutoReturnTimer();
+        }
+
+        // 返回首页（从侧边栏logo点击）
+        function goToHome() {
+            const welcomeSection = document.getElementById('welcome-section');
+            const inputSection = document.getElementById('input-section');
+            const resultSection = document.getElementById('result-section');
+
+            // 关闭所有模态框
+            const historyModal = document.getElementById('history-modal');
+            const harmonicaModal = document.getElementById('harmonica-scale-modal');
+            if (historyModal) {
+                historyModal.classList.add('hidden');
+                historyModal.classList.remove('flex');
+            }
+            if (harmonicaModal) {
+                harmonicaModal.classList.add('hidden');
+                harmonicaModal.classList.remove('flex');
+            }
+
+            // 显示欢迎界面
+            welcomeSection.classList.remove('hidden');
+            inputSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+
+            // 清空所有内容
+            document.getElementById('jianpu-text').value = '';
+            document.getElementById('file-preview-area').classList.add('hidden');
+            document.getElementById('file-preview-content').innerHTML = '';
+            uploadedImage = null;
+            document.getElementById('bd-content').innerHTML = '<div class="text-center text-gray-400 py-8">BD谱将显示在这里</div>';
+            document.getElementById('analysis-section').classList.add('hidden');
+            document.getElementById('harmonica-diagram-section').classList.add('hidden');
+            document.getElementById('receipt-key-signature').textContent = '';
+            document.getElementById('download-receipt-btn').disabled = true;
+            document.getElementById('audio-preview-section').classList.add('hidden');
+
+            // 清除自动返回计时器
+            clearAutoReturnTimer();
+        }
+
+        // 启动自动返回计时器
+        function startAutoReturnTimer() {
+            clearAutoReturnTimer();
+
+            let remainingTime = Math.floor(AUTO_RETURN_DELAY / 1000); // 秒数
+
+            // 更新倒计时显示
+            const timerDisplay = document.getElementById('countdown-timer');
+            if (timerDisplay) {
+                timerDisplay.textContent = remainingTime;
+            }
+
+            // 启动倒计时显示
+            countdownTimer = setInterval(function() {
+                remainingTime--;
+                if (timerDisplay) {
+                    timerDisplay.textContent = remainingTime;
+                }
+
+                if (remainingTime <= 0) {
+                    clearInterval(countdownTimer);
+                }
+            }, 1000);
+
+            // 启动自动返回计时器
+            autoReturnTimer = setTimeout(function() {
+                // 平滑过渡到欢迎界面
+                autoReturnToWelcome();
+            }, AUTO_RETURN_DELAY);
+        }
+
+        // 清除自动返回计时器
+        function clearAutoReturnTimer() {
+            if (autoReturnTimer) {
+                clearTimeout(autoReturnTimer);
+                autoReturnTimer = null;
+            }
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
+            // 隐藏倒计时提示
+            const hint = document.getElementById('auto-return-hint');
+            if (hint) {
+                hint.style.opacity = '0';
+            }
+        }
+
+        // 重置计时器（用户有操作时调用）
+        function resetAutoReturnTimer() {
+            clearAutoReturnTimer();
+            const inputSection = document.getElementById('input-section');
+            if (!inputSection.classList.contains('hidden')) {
+                startAutoReturnTimer();
+            }
+        }
+
+        // 自动返回到欢迎界面（带平滑动画）
+        function autoReturnToWelcome() {
+            const inputSection = document.getElementById('input-section');
+            const welcomeSection = document.getElementById('welcome-section');
+
+            // 添加淡出动画
+            inputSection.style.transition = 'opacity 0.5s ease-out';
+            inputSection.style.opacity = '0';
+
+            setTimeout(function() {
+                inputSection.classList.add('hidden');
+                inputSection.style.opacity = '1';
+
+                // 显示欢迎界面并添加淡入动画
+                welcomeSection.classList.remove('hidden');
+                welcomeSection.style.transition = 'opacity 0.5s ease-in';
+                welcomeSection.style.opacity = '0';
+
+                setTimeout(function() {
+                    welcomeSection.style.opacity = '1';
+                    // 清除之前的输入状态
+                    document.getElementById('jianpu-text').value = '';
+                    document.getElementById('file-preview-area').classList.add('hidden');
+                    document.getElementById('file-preview-content').innerHTML = '';
+                    uploadedImage = null;
+                }, 50);
+            }, 500);
+        }
+
+        // 切换调号下拉菜单
+        function toggleKeyDropdown(event) {
+            if (event) event.stopPropagation();
+
+            const dropdown = document.getElementById('key-dropdown');
+            const harmonicaDropdown = document.getElementById('harmonica-dropdown');
+            harmonicaDropdown.classList.add('hidden');
+
+            // 定位下拉菜单
+            const btn = document.getElementById('key-select-btn');
+            const rect = btn.getBoundingClientRect();
+
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.style.top = `${rect.bottom + 8}px`;
+                dropdown.style.left = `${rect.left}px`;
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // 选择调号
+        function selectKey(key, event) {
+            if (event) event.stopPropagation();
+
+            const keySelectBtn = document.getElementById('key-select-btn');
+            const selectedKey = document.getElementById('selected-key');
+            const dropdown = document.getElementById('key-dropdown');
+
+            const keyNames = {
+                'C': 'C调', 'G': 'G调', 'D': 'D调', 'F': 'F调',
+                'Bb': '降B调', 'Am': 'A小调', 'Em': 'E小调', 'Dm': 'D小调'
+            };
+
+            selectedKey.textContent = keyNames[key] || 'C调';
+            currentKeySignature = key;
+            dropdown.classList.add('hidden');
+        }
+
+        // 切换口琴类型下拉菜单
+        function toggleHarmonicaDropdown(event) {
+            if (event) event.stopPropagation();
+
+            const dropdown = document.getElementById('harmonica-dropdown');
+            const keyDropdown = document.getElementById('key-dropdown');
+            keyDropdown.classList.add('hidden');
+
+            // 定位下拉菜单
+            const btn = document.getElementById('harmonica-type-btn');
+            const rect = btn.getBoundingClientRect();
+
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.style.top = `${rect.bottom + 8}px`;
+                dropdown.style.left = `${rect.left}px`;
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // 选择口琴类型
+        function selectHarmonica(type, event) {
+            if (event) event.stopPropagation();
+
+            const harmonicaSelectBtn = document.getElementById('harmonica-type-btn');
+            const selectedHarmonica = document.getElementById('selected-harmonica');
+            const dropdown = document.getElementById('harmonica-dropdown');
+
+            const harmonicaNames = {
+                'C': '标准C', 'LowC': '低音C'
+            };
+
+            selectedHarmonica.textContent = harmonicaNames[type] || '标准C';
+            currentHarmonicaType = type;
+            dropdown.classList.add('hidden');
+        }
+
+        // 处理图片上传
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImage = e.target.result;
+
+                // 在文件预览区显示图片
+                const filePreviewArea = document.getElementById('file-preview-area');
+                const filePreviewContent = document.getElementById('file-preview-content');
+
+                filePreviewArea.classList.remove('hidden');
+                filePreviewContent.innerHTML = `
+                    <div class="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600 dark:text-white">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span class="text-sm text-gray-700 dark:text-white">${file.name}</span>
+                        <button onclick="clearImagePreview(event)" class="hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 清除图片预览
+        function clearImagePreview(event) {
+            event.stopPropagation();
+            uploadedImage = null;
+            document.getElementById('file-preview-area').classList.add('hidden');
+            document.getElementById('file-preview-content').innerHTML = '';
+            document.getElementById('image-upload').value = '';
+        }
+        
+        // 更新收据显示
+        function updateReceipt(data) {
+            updateDate();
+
+            // 更新调号显示
+            const keySignatureEl = document.getElementById('receipt-key-signature');
+            if (keySignatureEl) {
+                const harmonicaDisplay = currentHarmonicaType === 'LowC' ? 'LowC' : 'C';
+                keySignatureEl.textContent = `${currentKeySignature}调 · ${harmonicaDisplay}`;
+            }
+
+            // 更新BD谱内容
+            const bdContent = document.getElementById('bd-content');
+            bdContent.innerHTML = `<div class="bd-notation">${data.bd_text}</div>`;
+
+            // 更新分析
+            if (data.analysis) {
+                const analysisSection = document.getElementById('analysis-section');
+                const analysisContent = document.getElementById('analysis-content');
+                analysisSection.classList.remove('hidden');
+
+                analysisContent.innerHTML = `
+                    <div class="mb-2">总音符数: ${data.analysis.total_notes || 0}</div>
+                    <div class="mb-2">吹音数量: ${data.analysis.blow_count || 0}</div>
+                    <div>吸音数量: ${data.analysis.draw_count || 0}</div>
+                `;
+            }
+
+            // 更新口琴孔位图示
+            if (data.harmonica_diagram) {
+                const diagramSection = document.getElementById('harmonica-diagram-section');
+                const diagramImg = document.getElementById('harmonica-diagram-img');
+                diagramSection.classList.remove('hidden');
+                diagramImg.src = data.harmonica_diagram;
+            }
+
+            // 更新音频预览区
+            if (data.audio_data) {
+                const audioPreviewSection = document.getElementById('audio-preview-section');
+                const audioPlayerContainer = document.getElementById('audio-player-container');
+                const downloadBtn = document.getElementById('download-audio-btn');
+
+                audioPreviewSection.classList.remove('hidden');
+
+                // 清理旧的audio元素
+                audioPlayerContainer.innerHTML = '';
+
+                // 创建新的audio元素
+                const audioPlayer = document.createElement('audio');
+                audioPlayer.id = 'audio-player';
+                audioPlayer.controls = true;
+                audioPlayer.className = 'w-full';
+                audioPlayer.src = data.audio_data;
+
+                audioPlayerContainer.appendChild(audioPlayer);
+                audioPlayer.load();
+                audioPlayer.play();
+
+                // 下载音频按钮事件
+                downloadBtn.onclick = function() {
+                    const a = document.createElement('a');
+                    a.href = data.audio_data;
+                    a.download = 'harmonica_audio.wav';
+                    a.click();
+                };
+
+                // 使用真实音频数据生成波形图
+                setupRealWaveform();
+            }
+
+            // 启用下载BD谱按钮
+            const downloadReceiptBtn = document.getElementById('download-receipt-btn');
+            if (data.bd_image) {
+                downloadReceiptBtn.disabled = false;
+                downloadReceiptBtn.onclick = function() {
+                    // 获取收据元素
+                    const receipt = document.getElementById('receipt');
+
+                    // 使用html2canvas将收据转换为图片
+                    html2canvas(receipt, {
+                        scale: 2,  // 提高分辨率
+                        useCORS: true,
+                        backgroundColor: '#FFFFFF'
+                    }).then(canvas => {
+                        // 转换为数据URL并下载
+                        const imageData = canvas.toDataURL('image/png');
+                        const a = document.createElement('a');
+                        a.href = imageData;
+                        a.download = 'bd_notation_receipt.png';
+                        a.click();
+                    }).catch(err => {
+                        console.error('生成收据图片失败:', err);
+                        alert('生成收据图片失败，请重试');
+                    });
+                };
+            }
+        }
+        
+        // 加载历史记录
+        async function loadHistory() {
+            // 如果未登录，不加载历史记录
+            if (!authToken || !currentUser) {
+                renderHistory([]);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/conversions', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    renderHistory(result.data);
+                }
+            } catch (error) {
+                console.error('加载历史失败:', error);
+                renderHistory([]);
+            }
+        }
+        
+        // 渲染历史记录
+        function renderHistory(records) {
+            const grid = document.getElementById('history-grid-modal');
+            document.getElementById('history-count-modal').textContent = records.length;
+
+            if (records.length === 0) {
+                grid.innerHTML = `
+                    <div class="text-center text-gray-400 w-full py-12">
+                        <div class="text-6xl mb-4">📝</div>
+                        <p>暂无转换记录</p>
+                        <p class="text-sm">开始转换简谱以查看历史</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = records.map(record => `
+                <div class="receipt-card relative cursor-pointer" data-record-id="${record.id}" onclick="loadRecord(${record.id})">
+                    <button class="btn-danger" onclick="event.stopPropagation(); deleteRecord(${record.id})">✕</button>
+                    <div class="receipt-paper p-3 shadow-md" style="width: 100%;">
+                        <!-- BD谱小票头部 -->
+                        <div class="text-center mb-2">
+                            <div class="text-lg font-bold mb-1" style="letter-spacing: 2px;">BD NOTATION</div>
+                            <div class="text-xs">${record.key_signature || 'C'}调 · ${record.harmonica_type || 'C'}</div>
+                        </div>
+                        
+                        <!-- 分隔线 -->
+                        <div class="border-t-2 border-dashed border-black mb-2"></div>
+                        
+                        <!-- 日期 -->
+                        <div class="text-xs mb-2 text-center font-bold">
+                            DATE: ${formatDate(record.created_at)}
+                        </div>
+                        
+                        <!-- 分隔线 -->
+                        <div class="border-t border-dashed border-black mb-2"></div>
+                        
+                        <!-- BD谱内容 -->
+                        <div class="bd-notation text-xs overflow-y-auto" style="line-height: 1.2; max-height: 150px;">
+                            ${record.bd_text || ''}
+                        </div>
+                        
+                        <!-- 分隔线 -->
+                        <div class="border-t border-dashed border-black mb-2"></div>
+                        
+                        <!-- 演奏分析 -->
+                        ${record.analysis ? `
+                            <div class="text-xs mb-2">
+                                <div class="font-bold mb-1">ANALYSIS:</div>
+                                <div class="space-y-0.5">
+                                    <div>总: ${record.analysis.total_notes || 0}</div>
+                                    <div>吹: ${record.analysis.blow_count || 0}</div>
+                                    <div>吸: ${record.analysis.draw_count || 0}</div>
+                                </div>
+                            </div>
+                            <div class="border-t border-dashed border-black mb-2"></div>
+                        ` : ''}
+                        
+                        <!-- 底部信息 -->
+                        <div class="text-center text-xs">
+                            <div class="font-bold">Happy Playing!</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 加载单条记录
+        async function loadRecord(recordId) {
+            try {
+                const response = await fetch(`/api/conversions/${recordId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const data = result.data;
+
+                    // 保存调号和口琴类型
+                    currentKeySignature = data.key_signature || 'C';
+                    currentHarmonicaType = data.harmonica_type || 'C';
+
+                    // 更新收据显示
+                    updateDate();
+
+                    // 更新调号显示
+                    const keySignatureEl = document.getElementById('receipt-key-signature');
+                    if (keySignatureEl) {
+                        const harmonicaDisplay = currentHarmonicaType === 'LowC' ? 'LowC' : 'C';
+                        keySignatureEl.textContent = `${currentKeySignature}调 · ${harmonicaDisplay}`;
+                    }
+
+                    // 更新BD谱内容（显示口琴实物图）
+                    const bdContent = document.getElementById('bd-content');
+                    if (data.harmonica_diagram) {
+                        bdContent.innerHTML = `
+                            <div class="flex justify-center">
+                                <img src="${data.harmonica_diagram}" class="w-full h-auto" style="max-width: 260px;" alt="BD谱">
+                            </div>
+                        `;
+                    } else {
+                        bdContent.innerHTML = `<div class="bd-notation">${data.bd_text}</div>`;
+                    }
+
+                    // 更新分析
+                    if (data.analysis) {
+                        const analysisSection = document.getElementById('analysis-section');
+                        const analysisContent = document.getElementById('analysis-content');
+                        analysisSection.classList.remove('hidden');
+
+                        analysisContent.innerHTML = `
+                            <div>总音符数: ${data.analysis.total_notes || 0}</div>
+                            <div>吹音数量: ${data.analysis.blow_count || 0}</div>
+                            <div>吸音数量: ${data.analysis.draw_count || 0}</div>
+                        `;
+                    }
+
+                    // 历史记录暂不显示音频（因为数据库中没有保存音频）
+                    const audioPreviewSection = document.getElementById('audio-preview-section');
+                    audioPreviewSection.classList.add('hidden');
+
+                    // 启用下载BD谱按钮
+                    const downloadReceiptBtn = document.getElementById('download-receipt-btn');
+                    if (data.bd_image) {
+                        downloadReceiptBtn.disabled = false;
+                        downloadReceiptBtn.onclick = function() {
+                            // 获取收据元素
+                            const receipt = document.getElementById('receipt');
+
+                            // 使用html2canvas将收据转换为图片
+                            html2canvas(receipt, {
+                                scale: 2,  // 提高分辨率
+                                useCORS: true,
+                                backgroundColor: '#FFFFFF'
+                            }).then(canvas => {
+                                // 转换为数据URL并下载
+                                const imageData = canvas.toDataURL('image/png');
+                                const a = document.createElement('a');
+                                a.href = imageData;
+                                a.download = 'bd_notation_receipt.png';
+                                a.click();
+                            }).catch(err => {
+                                console.error('生成收据图片失败:', err);
+                                alert('生成收据图片失败，请重试');
+                            });
+                        };
+                    }
+
+                    currentRecordId = recordId;
+                }
+            } catch (error) {
+                console.error('加载记录失败:', error);
+            }
+        }
+        
+        // 删除记录
+        async function deleteRecord(recordId) {
+            if (!confirm('确定要删除这条记录吗？\n记录ID: ' + recordId)) {
+                console.log('用户取消删除');
+                return;
+            }
+
+            console.log('========== 开始删除记录 ==========');
+            console.log('删除记录 ID:', recordId);
+
+            try {
+                console.log('发送DELETE请求到:', `/api/conversions/${recordId}`);
+
+                const response = await fetch(`/api/conversions/${recordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                console.log('响应状态:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('删除失败，HTTP状态码:', response.status);
+                    console.error('错误详情:', errorText);
+                    alert(`删除失败: ${response.status} - ${errorText}`);
+                    return;
+                }
+
+                const result = await response.json();
+                console.log('服务器返回结果:', result);
+
+                if (result.success) {
+                    console.log('删除成功，开始更新UI...');
+
+                    // 立即从DOM中移除该记录卡片，使用 data-record-id 属性
+                    const card = document.querySelector(`[data-record-id="${recordId}"]`);
+                    console.log('查找卡片元素 [data-record-id="' + recordId + '"]:', card);
+
+                    if (card) {
+                        card.remove();
+                        console.log('✓ 卡片已从DOM移除');
+
+                        // 更新记录数
+                        const countEl = document.getElementById('history-count-modal');
+                        if (countEl) {
+                            const oldCount = parseInt(countEl.textContent);
+                            countEl.textContent = oldCount - 1;
+                            console.log(`✓ 记录数已更新: ${oldCount} → ${oldCount - 1}`);
+                        }
+
+                        // 如果没有记录了，显示空状态
+                        const grid = document.getElementById('history-grid-modal');
+                        const remainingCards = grid.querySelectorAll('.receipt-card');
+                        console.log('剩余卡片数量:', remainingCards.length);
+
+                        if (remainingCards.length === 0) {
+                            console.log('显示空状态');
+                            grid.innerHTML = `
+                                <div class="text-center text-gray-400 w-full py-12">
+                                    <div class="text-6xl mb-4">📝</div>
+                                    <p>暂无转换记录</p>
+                                    <p class="text-sm">开始转换简谱以查看历史</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        console.warn('⚠ 未找到要删除的卡片元素');
+                        console.warn('尝试选择器:', `[data-record-id="${recordId}"]`);
+                        // 列出所有卡片帮助调试
+                        const allCards = document.querySelectorAll('.receipt-card');
+                        console.log('页面上所有卡片:', allCards);
+                    }
+
+                    // 显示成功提示
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 transition-opacity duration-300';
+                    notification.textContent = '✓ 记录已删除';
+                    notification.style.animation = 'fadeInOut 2s forwards';
+                    document.body.appendChild(notification);
+                    console.log('✓ 已显示成功提示');
+
+                    // 2秒后移除提示，然后延迟刷新列表
+                    setTimeout(() => {
+                        notification.remove();
+                        console.log('✓ 提示已移除');
+                        // 延迟刷新历史记录，让用户看到删除效果
+                        console.log('延迟刷新历史记录...');
+                        loadHistory();
+                    }, 2000);
+
+                    console.log('========== 删除完成 ==========');
+                } else {
+                    console.error('服务器返回失败:', result.error);
+                    alert(`删除失败: ${result.error || '未知错误'}`);
+                }
+            } catch (error) {
+                console.error('========== 删除过程发生异常 ==========');
+                console.error('异常类型:', error.name);
+                console.error('异常消息:', error.message);
+                console.error('异常堆栈:', error.stack);
+                alert(`删除异常: ${error.message}`);
+            }
+        }
+        
+        // 格式化日期
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        // 使用真实音频数据设置波形可视化（作为背景）
+        let audioContext = null;
+        let analyser = null;
+        let animationFrameId = null;
+
+        function setupRealWaveform() {
+            const waveformBars = document.getElementById('waveform-bars-bg');
+            if (!waveformBars) return;
+
+            // 创建波形条
+            waveformBars.innerHTML = '';
+            const barCount = 100;  // 更多波形条，跨越整个屏幕
+            const bars = [];
+
+            for (let i = 0; i < barCount; i++) {
+                const bar = document.createElement('div');
+                bar.style.width = '8px';
+                bar.style.minWidth = '8px';
+                bar.style.height = '10px';
+                // 根据暗夜模式设置不同的颜色
+                if (isDarkMode) {
+                    bar.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';  // 暗夜模式下用白色
+                } else {
+                    bar.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';  // 亮色模式下用黑色
+                }
+                bar.style.borderRadius = '2px';
+                bar.style.flexShrink = '0';
+                bar.style.transition = 'height 0.05s ease-out';  // 平滑过渡
+                waveformBars.appendChild(bar);
+                bars.push(bar);
+            }
+
+            // 获取新创建的audio元素
+            const audioPlayer = document.getElementById('audio-player');
+            if (!audioPlayer) return;
+
+            // 清理之前的 AudioContext
+            if (audioContext) {
+                audioContext.close();
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            // 创建新的 AudioContext
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 512;  // 更高的分辨率
+            analyser.smoothingTimeConstant = 0.8;  // 更平滑
+
+            // 连接音频源（每次都是新的audio元素，所以可以安全创建新的source）
+            const audioSource = audioContext.createMediaElementSource(audioPlayer);
+            audioSource.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            // 绘制波形
+            function drawWaveform() {
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteTimeDomainData(dataArray);
+
+                // 将数据分成 barCount 个部分，每个部分取平均值
+                const chunkSize = Math.floor(bufferLength / barCount);
+                for (let i = 0; i < barCount; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < chunkSize; j++) {
+                        sum += Math.abs(dataArray[i * chunkSize + j] - 128);
+                    }
+                    const average = sum / chunkSize;
+
+                    // 将振幅映射到高度 (10px - 80px，作为背景更柔和）
+                    const height = Math.max(10, Math.min(80, average * 1.2));
+                    bars[i].style.height = `${height}px`;
+                }
+
+                // 继续动画
+                animationFrameId = requestAnimationFrame(drawWaveform);
+            }
+
+            // 开始绘制
+            drawWaveform();
+        }
+
+        // 切换口琴音阶表显示
+        function toggleHarmonicaScale() {
+            const modal = document.getElementById('harmonica-scale-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        // 切换侧边栏显示
+        // 移动端默认收起，桌面端默认展开
+        let isSidebarCollapsed = window.innerWidth <= 768;
+
+        // 初始化侧边栏状态
+        function initSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContentWrapper = document.querySelector('.main-content-wrapper');
+            const floatingToggle = document.getElementById('floating-toggle-container');
+
+            if (window.innerWidth <= 768) {
+                // 移动端：收起
+                sidebar.classList.remove('w-20', 'opacity-100');
+                sidebar.classList.add('w-0', 'opacity-0', 'collapsed');
+                floatingToggle.classList.remove('hidden');
+                mainContentWrapper.classList.remove('ml-20');
+                mainContentWrapper.classList.add('ml-0');
+            } else {
+                // 桌面端：展开
+                sidebar.classList.remove('w-0', 'opacity-0', 'collapsed');
+                sidebar.classList.add('w-20', 'opacity-100');
+                floatingToggle.classList.add('hidden');
+                mainContentWrapper.classList.remove('ml-0');
+                mainContentWrapper.classList.add('ml-20');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContentWrapper = document.querySelector('.main-content-wrapper');
+            const floatingToggle = document.getElementById('floating-toggle-container');
+
+            isSidebarCollapsed = !isSidebarCollapsed;
+
+            if (!isSidebarCollapsed) {
+                // 展开侧边栏
+                sidebar.classList.remove('w-0', 'opacity-0', 'collapsed');
+                sidebar.classList.add('w-20', 'opacity-100');
+                floatingToggle.classList.add('hidden');
+                mainContentWrapper.classList.remove('ml-0');
+                mainContentWrapper.classList.add('ml-20');
+            } else {
+                // 收起侧边栏
+                sidebar.classList.remove('w-20', 'opacity-100');
+                sidebar.classList.add('w-0', 'opacity-0', 'collapsed');
+                floatingToggle.classList.remove('hidden');
+                mainContentWrapper.classList.remove('ml-20');
+                mainContentWrapper.classList.add('ml-0');
+            }
+        }
+
+        // 切换历史记录显示
+        function toggleHistoryModal() {
+            // 如果未登录，显示登录模态框
+            if (!authToken || !currentUser) {
+                showAuthModal();
+                showLogin();
+                showNotification('请先登录以查看历史记录');
+                return;
+            }
+
+            const modal = document.getElementById('history-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        // 点击模态框外部关闭
+        document.addEventListener('click', function(event) {
+            // 使用说明模态框
+            const harmonicaModal = document.getElementById('harmonica-scale-modal');
+            const harmonicaButton = event.target.closest('[onclick="toggleHarmonicaScale()"]');
+            const harmonicaModalContent = event.target.closest('#harmonica-scale-content');
+
+            if (!harmonicaModal.classList.contains('hidden') && !harmonicaButton && !harmonicaModalContent) {
+                harmonicaModal.classList.add('hidden');
+                harmonicaModal.classList.remove('flex');
+            }
+
+            // 历史记录模态框
+            const historyModal = document.getElementById('history-modal');
+            const historyButton = event.target.closest('[onclick="toggleHistoryModal()"]');
+            const historyModalContent = event.target.closest('#history-modal-content');
+
+            if (!historyModal.classList.contains('hidden') && !historyButton && !historyModalContent) {
+                historyModal.classList.add('hidden');
+                historyModal.classList.remove('flex');
+            }
+
+            // 用户菜单下拉
+            const userMenu = document.getElementById('user-menu');
+            const userAvatarBtn = event.target.closest('[onclick="toggleUserMenu()"]');
+            const userMenuContent = event.target.closest('#user-menu');
+
+            if (!userMenu.classList.contains('hidden') && !userAvatarBtn && !userMenuContent) {
+                userMenu.style.animation = 'menuFadeOut 0.15s ease-out forwards';
+                setTimeout(() => {
+                    userMenu.classList.add('hidden');
+                }, 150);
+            }
+        });
+
+        // 初始化星空背景
+        function initStarfield() {
+            const starfield = document.getElementById('starfield');
+            if (!starfield) return;
+
+            // 清空现有星星
+            starfield.innerHTML = '';
+
+            // 创建静态闪烁的星星
+            const starCount = 80;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+
+                // 随机位置
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+
+                // 随机大小
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+
+                // 随机动画参数
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                star.style.setProperty('--delay', (Math.random() * 2) + 's');
+                star.style.setProperty('--opacity-start', Math.random() * 0.5 + 0.2);
+                star.style.setProperty('--opacity-end', Math.random() * 0.5 + 0.6);
+
+                starfield.appendChild(star);
+            }
+
+            // 创建流星
+            createShootingStars(starfield);
+        }
+
+        // 创建流星效果
+        function createShootingStars(starfield) {
+            setInterval(() => {
+                if (!document.body.classList.contains('dark-mode')) return;
+
+                const shootingStar = document.createElement('div');
+                shootingStar.className = 'star-shooting';
+
+                // 随机起始位置
+                shootingStar.style.left = Math.random() * 50 + '%';
+                shootingStar.style.top = Math.random() * 50 + '%';
+
+                starfield.appendChild(shootingStar);
+
+                // 3秒后移除
+                setTimeout(() => {
+                    shootingStar.remove();
+                }, 3000);
+            }, 4000);
+        }
+
+        // Data URL to File转换
+        function dataURLtoFile(dataURL, filename) {
+            const arr = dataURL.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, {type: mime});
+        }
+
+        // ==================== 认证相关函数 ====================
+
+        // 认证状态
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+
+        // 显示登录模态框
+        function showAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.add('active');
+        }
+
+        // 显示头像上传模态框
+        function showAvatarUploadModal() {
+            const modal = document.getElementById('avatar-upload-modal');
+            const menu = document.getElementById('user-menu');
+            modal.classList.add('active');
+            // 关闭用户菜单（带动画）
+            menu.style.animation = 'menuFadeOut 0.15s ease-out forwards';
+            setTimeout(() => {
+                menu.classList.add('hidden');
+            }, 150);
+            // 重置表单
+            resetAvatarUploadForm();
+        }
+
+        // 关闭头像上传模态框
+        function closeAvatarUploadModal() {
+            const modal = document.getElementById('avatar-upload-modal');
+            modal.classList.remove('active');
+            resetAvatarUploadForm();
+        }
+
+        // 预览头像
+        function previewAvatar(input) {
+            const file = input.files[0];
+            const previewImg = document.getElementById('avatar-preview-img');
+            const placeholder = document.getElementById('avatar-preview-placeholder');
+            const saveBtn = document.getElementById('avatar-save-btn');
+            const errorDiv = document.getElementById('avatar-upload-error');
+
+            // 重置状态
+            errorDiv.textContent = '';
+            saveBtn.disabled = true;
+
+            if (!file) {
+                previewImg.style.display = 'none';
+                placeholder.style.display = 'block';
+                return;
+            }
+
+            // 验证文件类型
+            if (!file.type.startsWith('image/')) {
+                errorDiv.textContent = '请选择图片文件';
+                previewImg.style.display = 'none';
+                placeholder.style.display = 'block';
+                return;
+            }
+
+            // 验证文件大小（最大2MB）
+            if (file.size > 2 * 1024 * 1024) {
+                errorDiv.textContent = '图片大小不能超过2MB';
+                previewImg.style.display = 'none';
+                placeholder.style.display = 'block';
+                return;
+            }
+
+            // 显示预览
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                placeholder.style.display = 'none';
+                saveBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 保存头像
+        function saveAvatar() {
+            const fileInput = document.getElementById('avatar-file-input');
+            const file = fileInput.files[0];
+            const errorDiv = document.getElementById('avatar-upload-error');
+
+            if (!file) {
+                errorDiv.textContent = '请选择图片';
+                return;
+            }
+
+            // 使用localStorage保存头像（实际项目中应该上传到服务器）
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const avatarData = e.target.result;
+                // 保存到localStorage
+                localStorage.setItem('userAvatar_' + currentUser.username, avatarData);
+
+                // 更新侧边栏头像
+                updateAvatarDisplay(avatarData);
+
+                // 关闭模态框
+                closeAvatarUploadModal();
+
+                // 显示成功提示
+                showNotification('头像已更新');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 更新头像显示
+        function updateAvatarDisplay(avatarData) {
+            const avatarText = document.getElementById('user-avatar-text');
+            if (avatarData) {
+                // 如果有自定义头像，显示图片
+                avatarText.innerHTML = `<img src="${avatarData}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            } else {
+                // 否则显示用户名首字母
+                const firstLetter = currentUser.username.charAt(0).toUpperCase();
+                avatarText.textContent = firstLetter;
+            }
+        }
+
+        // 清除头像
+        function clearAvatar() {
+            if (!currentUser) return;
+
+            // 确认清除
+            if (!confirm('确定要清除自定义头像吗？清除后将显示默认头像。')) {
+                return;
+            }
+
+            // 清除localStorage中的头像数据
+            localStorage.removeItem('userAvatar_' + currentUser.username);
+
+            // 更新显示为默认头像
+            updateAvatarDisplay(null);
+
+            // 显示成功提示
+            showNotification('✓ 头像已清除');
+        }
+
+        // 显示修改密码模态框
+        function showChangePasswordModal() {
+            if (!currentUser) return;
+            const modal = document.getElementById('change-password-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('current-password').focus();
+            // 清空表单
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-new-password').value = '';
+            hideChangePasswordMessage();
+        }
+
+        // 关闭修改密码模态框
+        function closeChangePasswordModal() {
+            const modal = document.getElementById('change-password-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // 提交修改密码
+        async function submitChangePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+            const submitBtn = document.getElementById('change-password-submit');
+
+            // 验证
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                showChangePasswordMessage('error', '请填写所有字段');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showChangePasswordMessage('error', '新密码长度至少为6个字符');
+                return;
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                showChangePasswordMessage('error', '两次输入的新密码不一致');
+                return;
+            }
+
+            if (currentPassword === newPassword) {
+                showChangePasswordMessage('error', '新密码不能与当前密码相同');
+                return;
+            }
+
+            // 显示加载状态
+            submitBtn.disabled = true;
+            submitBtn.textContent = '修改中...';
+
+            try {
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showChangePasswordMessage('success', '密码修改成功！请重新登录');
+                    setTimeout(() => {
+                        closeChangePasswordModal();
+                        logout();
+                    }, 1500);
+                } else {
+                    showChangePasswordMessage('error', result.error || '修改失败，请稍后重试');
+                }
+            } catch (error) {
+                console.error('修改密码错误:', error);
+                showChangePasswordMessage('error', '网络错误，请稍后重试');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '确认修改';
+            }
+        }
+
+        // 显示修改密码消息
+        function showChangePasswordMessage(type, message) {
+            const messageDiv = document.getElementById('change-password-message');
+            messageDiv.classList.remove('hidden');
+            messageDiv.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+
+            if (type === 'success') {
+                messageDiv.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                messageDiv.classList.add('bg-red-100', 'text-red-800');
+            }
+
+            messageDiv.textContent = message;
+        }
+
+        // 隐藏修改密码消息
+        function hideChangePasswordMessage() {
+            const messageDiv = document.getElementById('change-password-message');
+            messageDiv.classList.add('hidden');
+        }
+
+        // 重置头像上传表单
+        function resetAvatarUploadForm() {
+            document.getElementById('avatar-file-input').value = '';
+            const previewImg = document.getElementById('avatar-preview-img');
+            const placeholder = document.getElementById('avatar-preview-placeholder');
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            placeholder.style.display = 'block';
+            document.getElementById('avatar-save-btn').disabled = true;
+            document.getElementById('avatar-upload-error').textContent = '';
+        }
+
+        // 关闭认证模态框
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('active');
+        }
+
+        // 显示登录表单
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-password-form').classList.add('hidden');
+            document.getElementById('reset-password-form').classList.add('hidden');
+            document.getElementById('auth-title').textContent = '欢迎回来';
+            document.getElementById('auth-subtitle').textContent = '登录以开始使用';
+            hideAuthError();
+        }
+
+        // 显示注册表单
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('forgot-password-form').classList.add('hidden');
+            document.getElementById('reset-password-form').classList.add('hidden');
+            document.getElementById('auth-title').textContent = '创建账号';
+            document.getElementById('auth-subtitle').textContent = '注册以开始使用';
+            hideAuthError();
+        }
+
+        // 显示忘记密码表单
+        function showForgotPassword() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-password-form').classList.remove('hidden');
+            document.getElementById('reset-password-form').classList.add('hidden');
+            document.getElementById('auth-title').textContent = '重置密码';
+            document.getElementById('auth-subtitle').textContent = '输入用户名以重置密码';
+            hideAuthError();
+        }
+
+        function showResetPassword() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-password-form').classList.add('hidden');
+            document.getElementById('reset-password-form').classList.remove('hidden');
+            document.getElementById('auth-title').textContent = '设置新密码';
+            document.getElementById('auth-subtitle').textContent = '请输入新密码';
+            hideAuthError();
+        }
+
+        // 显示认证错误
+        function showAuthError(message) {
+            const errorDiv = document.getElementById('auth-error');
+            if (message === null) {
+                hideAuthError();
+            } else {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // 隐藏认证错误
+        function hideAuthError() {
+            const errorDiv = document.getElementById('auth-error');
+            errorDiv.classList.add('hidden');
+        }
+
+        // 登录处理
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+
+            if (!username || !password) {
+                showAuthError('请填写所有必填字段');
+                return;
+            }
+
+            // 显示加载状态
+            btn.classList.add('auth-loading');
+            btn.textContent = '登录中...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 保存认证信息
+                    authToken = result.token;
+                    currentUser = result.user;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    // 更新UI
+                    updateUserDisplay();
+                    closeAuthModal();
+
+                    // 显示成功提示
+                    showNotification('✓ 登录成功');
+                } else {
+                    showAuthError(result.error || '登录失败');
+                }
+            } catch (error) {
+                console.error('登录错误:', error);
+                showAuthError('网络错误，请稍后重试');
+            } finally {
+                btn.classList.remove('auth-loading');
+                btn.textContent = '登录';
+            }
+        });
+
+        // 注册处理
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            const btn = document.getElementById('register-btn');
+
+            // 验证密码
+            if (password !== confirmPassword) {
+                showAuthError('两次输入的密码不一致');
+                return;
+            }
+
+            if (username.length < 3) {
+                showAuthError('用户名至少需要3个字符');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAuthError('密码至少需要6个字符');
+                return;
+            }
+
+            // 显示加载状态
+            btn.classList.add('auth-loading');
+            btn.textContent = '注册中...';
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        username, 
+                        email: email || null, 
+                        password 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 注册成功，自动登录
+                    const loginResponse = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const loginResult = await loginResponse.json();
+
+                    if (loginResult.success) {
+                        authToken = loginResult.token;
+                        currentUser = loginResult.user;
+                        localStorage.setItem('authToken', authToken);
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                        updateUserDisplay();
+                        closeAuthModal();
+                        showNotification('✓ 注册成功');
+                    }
+                } else {
+                    showAuthError(result.error || '注册失败');
+                }
+            } catch (error) {
+                console.error('注册错误:', error);
+                showAuthError('网络错误，请稍后重试');
+            } finally {
+                btn.classList.remove('auth-loading');
+                btn.textContent = '注册';
+            }
+        });
+
+        // 忘记密码 - 第一步：验证用户名
+        document.getElementById('forgot-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('forgot-username').value.trim();
+            const btn = document.getElementById('forgot-btn');
+
+            if (!username) {
+                showAuthError('请输入用户名');
+                return;
+            }
+
+            // 显示加载状态
+            btn.classList.add('auth-loading');
+            btn.textContent = '验证中...';
+
+            try {
+                const response = await fetch('/api/auth/verify-username', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 用户存在，进入第二步设置新密码
+                    showAuthError(null);
+                    showResetPassword();
+                } else {
+                    showAuthError(result.error || '用户名不存在');
+                }
+            } catch (error) {
+                console.error('验证用户名错误:', error);
+                showAuthError('网络错误，请稍后重试');
+            } finally {
+                btn.classList.remove('auth-loading');
+                btn.textContent = '下一步';
+            }
+        });
+
+        // 忘记密码 - 第二步：设置新密码
+        document.getElementById('reset-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('forgot-username').value.trim();
+            const password = document.getElementById('reset-password').value;
+            const confirmPassword = document.getElementById('reset-confirm-password').value;
+            const btn = document.getElementById('reset-btn');
+
+            // 验证密码
+            if (password !== confirmPassword) {
+                showAuthError('两次输入的密码不一致');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAuthError('密码至少需要6个字符');
+                return;
+            }
+
+            // 显示加载状态
+            btn.classList.add('auth-loading');
+            btn.textContent = '重置中...';
+
+            try {
+                const response = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAuthError(null);
+                    showNotification('✓ 密码重置成功');
+                    setTimeout(() => {
+                        showLogin();
+                    }, 1500);
+                } else {
+                    showAuthError(result.error || '重置失败');
+                }
+            } catch (error) {
+                console.error('重置密码错误:', error);
+                showAuthError('网络错误，请稍后重试');
+            } finally {
+                btn.classList.remove('auth-loading');
+                btn.textContent = '确认重置';
+            }
+        });
+
+        // 登出处理
+        async function logout() {
+            if (!authToken) return;
+
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+            } catch (error) {
+                console.error('登出错误:', error);
+            }
+
+            // 清除本地存储
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            // 注意：不清除头像数据，头像应该保留，下次登录时还能看到
+
+            // 更新UI显示
+            updateUserDisplay();
+
+            // 显示登录模态框
+            showAuthModal();
+            showNotification('✓ 已登出');
+        }
+
+        // 更新用户显示
+        function updateUserDisplay() {
+            const loginSection = document.getElementById('login-section');
+            const loggedInSection = document.getElementById('logged-in-section');
+            const usernameLabel = document.getElementById('username-label');
+            const menuUsername = document.getElementById('menu-username');
+            const menuEmail = document.getElementById('menu-email');
+
+            if (currentUser) {
+                // 已登录状态
+                loginSection.classList.add('hidden');
+                loggedInSection.classList.remove('hidden');
+                usernameLabel.textContent = currentUser.username;
+                menuUsername.textContent = currentUser.username;
+                menuEmail.textContent = currentUser.email || '未设置邮箱';
+
+                // 生成头像
+                generateAvatar(currentUser.username);
+            } else {
+                // 未登录状态
+                loginSection.classList.remove('hidden');
+                loggedInSection.classList.add('hidden');
+            }
+            console.log('当前用户:', currentUser);
+        }
+
+        // 生成用户头像（使用用户名首字母或自定义头像）
+        function generateAvatar(username) {
+            const avatarText = document.getElementById('user-avatar-text');
+            if (!avatarText) return;
+
+            // 检查是否有保存的自定义头像
+            const savedAvatar = localStorage.getItem('userAvatar_' + username);
+            if (savedAvatar) {
+                // 显示自定义头像
+                avatarText.innerHTML = `<img src="${savedAvatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            } else {
+                // 显示默认头像（用户名首字母）
+                const firstLetter = username ? username.charAt(0).toUpperCase() : '?';
+                avatarText.textContent = firstLetter;
+            }
+        }
+
+        // 切换用户菜单
+        function toggleUserMenu() {
+            const menu = document.getElementById('user-menu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                // 重新触发动画
+                menu.style.animation = 'none';
+                menu.offsetHeight; // 触发重排
+                menu.style.animation = 'menuFadeIn 0.2s ease-out';
+            } else {
+                menu.style.animation = 'menuFadeOut 0.15s ease-out forwards';
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                }, 150);
+            }
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.style.animation = 'fadeInOut 2s forwards';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        // 获取带认证的fetch包装器
+        function authenticatedFetch(url, options = {}) {
+            if (!authToken) {
+                return Promise.reject(new Error('未登录'));
+            }
+
+            const headers = options.headers || {};
+            headers['Authorization'] = `Bearer ${authToken}`;
+            options.headers = headers;
+
+            return fetch(url, options).then(async (response) => {
+                // 如果返回 401 未授权，清除本地数据并重新登录
+                if (response.status === 401) {
+                    authToken = null;
+                    currentUser = null;
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    // 注意：不清除头像数据，因为用户名没变，头像应该保留
+                    updateUserDisplay();
+                    showAuthModal();
+                    showNotification('登录已过期，请重新登录');
+                    throw new Error('未授权');
+                }
+                return response;
+            });
+        }
+
+        // 页面加载时检查认证状态（不强制登录）
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authToken) {
+                // 验证令牌是否有效
+                fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (!result.success) {
+                        // 令牌无效，清除
+                        authToken = null;
+                        currentUser = null;
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('currentUser');
+                        // 注意：不清除头像数据，因为用户名没变，头像应该保留
+                    } else {
+                        // 令牌有效，更新用户信息
+                        currentUser = result.user;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    }
+                    updateUserDisplay();
+                })
+                .catch(error => {
+                    console.error('验证令牌失败:', error);
+                    authToken = null;
+                    currentUser = null;
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    // 注意：不清除头像数据，因为用户名没变，头像应该保留
+                    updateUserDisplay();
+                });
+            } else {
+                // 没有令牌，初始化用户显示为未登录状态
+                updateUserDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
