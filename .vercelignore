@@ -1,0 +1,11 @@
+# Vercel 构建/打包排除项
+.git
+legacy
+*.pyc
+__pycache__
+.env
+.env.*
+!.env.example
+output_test
+node_modules
+.vercel

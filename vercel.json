@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index?__path=/api/$1" },
+    { "source": "/admin", "destination": "/api/index?__path=/admin" },
+    { "source": "/admin/(.*)", "destination": "/api/index?__path=/admin/$1" },
+    { "source": "/(.*)", "destination": "/api/index?__path=/$1" }
+  ],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
+}

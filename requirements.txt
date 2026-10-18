@@ -1,0 +1,25 @@
+# ========================================
+# 口琴谱生成器 Jianpu to BD · Vercel 版依赖
+# 相比原版移除了 EasyOCR/OpenCV/SciPy/pyodbc 等无法在
+# Vercel Serverless 上运行或超出体积限制的依赖
+# ========================================
+
+# Web 框架
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# 环境变量
+python-dotenv>=1.0.0
+
+# 数据库（PostgreSQL，替代 SQL Server）
+psycopg2-binary>=2.9.0
+
+# 数值计算与图像处理
+numpy>=1.24.0
+pillow>=10.0.0
+
+# 音频合成
+soundfile>=0.12.0
+
+# OCR 外部 API 调用
+requests>=2.31.0
