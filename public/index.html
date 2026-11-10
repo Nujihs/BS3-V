@@ -558,6 +558,89 @@
             background-color: #FFFFFF;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
+
+        /* ===== 打印机动效 ===== */
+        .printer-mouth {
+            width: 320px;
+            height: 26px;
+            background: linear-gradient(#3a3a3a 0%, #111 50%, #000 100%);
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+            position: relative;
+            z-index: 3;
+            margin: 0 auto;
+        }
+        .printer-mouth::after {
+            content: '';
+            position: absolute;
+            left: 8%; right: 8%;
+            top: 50%;
+            height: 6px;
+            transform: translateY(-50%);
+            background: #000;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.9);
+        }
+        /* 纸张从出纸口逐渐吐出：clip-path 从底部 100% 遮罩到完全显示 */
+        #receipt.printing {
+            animation: receiptPrintOut 2600ms cubic-bezier(0.25, 0.6, 0.35, 1) forwards;
+            transform-origin: top center;
+        }
+        @keyframes receiptPrintOut {
+            0%   { clip-path: inset(0 0 100% 0); transform: translateY(-18px); }
+            60%  { clip-path: inset(0 0 8% 0);    transform: translateY(2px); }
+            100% { clip-path: inset(0 0 0 0);     transform: translateY(0); }
+        }
+
+        /* ===== 落地式热敏打印机外壳（参考老式收银打印机） ===== */
+        .printer-shell {
+            width: 380px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* 顶部灯箱招牌 */
+        .printer-top-light {
+            width: 340px;
+            height: 54px;
+            background: linear-gradient(180deg, #fafafa 0%, #e2e2e2 55%, #c4c4c4 100%);
+            border: 3px solid #1a1a1a;
+            border-radius: 12px 12px 4px 4px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35), inset 0 2px 5px rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 20px; letter-spacing: 5px;
+            color: #111;
+            text-shadow: 0 0 10px rgba(255,255,255,0.95);
+            position: relative; z-index: 5;
+        }
+        /* 金属机身 */
+        .printer-body {
+            width: 380px;
+            background: linear-gradient(180deg, #ececec 0%, #c9c9c9 45%, #a3a3a3 100%);
+            border: 3px solid #1a1a1a;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.42);
+            padding: 20px 0 26px;
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+        }
+        /* 机身两侧旋钮装饰 */
+        .printer-body::before, .printer-body::after {
+            content: '';
+            position: absolute; top: 20px;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #888 0%, #222 100%);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .printer-body::before { left: 14px; }
+        .printer-body::after { right: 14px; }
+        /* 出纸口贴在机身上沿 */
+        .printer-body .printer-mouth {
+            margin-top: -2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
         
         .receipt-zigzag {
             background: linear-gradient(135deg, transparent 10px, #FFFFFF 10px) no-repeat;
@@ -1417,6 +1500,14 @@
             <span class="btn-label">历史记录</span>
         </div>
 
+        <!-- 后台管理入口 -->
+        <div class="flex flex-col gap-1 items-center">
+            <a href="/admin" id="admin-btn" class="btn-gif flex items-center justify-center">
+                <span class="btn-gif-icon">📊</span>
+            </a>
+            <span class="btn-label">后台管理</span>
+        </div>
+
         <!-- 用户信息 -->
         <div id="user-info" class="flex flex-col gap-1 items-center mt-auto mb-2">
             <!-- 未登录时显示登录按钮 -->
@@ -1642,8 +1733,14 @@
 
                     <!-- BD谱小票容器 -->
                     <div class="flex justify-center">
-                        <div class="relative">
-                            <div id="receipt" class="receipt-paper p-6" style="width: 300px; min-height: 500px;">
+                        <div class="printer-shell">
+                            <!-- 灯箱招牌 -->
+                            <div class="printer-top-light">BD NOTATION</div>
+                            <!-- 金属机身 + 出纸口 + 吐出的纸 -->
+                            <div class="printer-body">
+                            <!-- 打印机出纸口 -->
+                            <div class="printer-mouth"></div>
+                            <div id="receipt" class="receipt-paper p-6" style="width: 300px; min-height: 500px; margin: -6px auto 0;">
                                 <!-- BD谱小票头部 -->
                                 <div class="text-center mb-4">
                                     <div class="text-2xl font-bold mb-1" style="letter-spacing: 2px;">BD NOTATION</div>
@@ -1708,6 +1805,7 @@
                                         <span class="text-white text-2xl">♩</span>
                                     </div>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -2127,6 +2225,9 @@
         async function convertJianpu() {
             const btn = document.getElementById('convert-btn');
 
+            // 用户手势内立即解锁 AudioContext，防止后端返回后首次播放被浏览器拦截（打字机音效/音频都依赖它）
+            try { ensureAudioCtx(); } catch (e) {}
+
             const text = document.getElementById('jianpu-text').value.trim();
 
             if (!text && !uploadedImage) {
@@ -2532,6 +2633,75 @@
         }
         
         // 更新收据显示
+        // ===== 打印机动效 + 打字机音效（Web Audio 合成，无外部音频文件） =====
+        let typeTimer = null;
+        let audioCtx = null;
+        let pendingAudioPlayer = null;
+        let printTimer = null;
+
+        function ensureAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        // 单个字符敲击的"咔哒"声：短噪声 burst + 带通滤波
+        function typeClick() {
+            try {
+                const ctx = ensureAudioCtx();
+                const dur = 0.025;
+                const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+                const d = buf.getChannelData(0);
+                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.5);
+                const src = ctx.createBufferSource(); src.buffer = buf;
+                const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 0.8;
+                const g = ctx.createGain(); g.gain.value = 0.32;
+                src.connect(f); f.connect(g); g.connect(ctx.destination);
+                src.start();
+            } catch (e) {}
+        }
+        // 每几行一次的"回车"声：低频下扫
+        function carriageReturn() {
+            try {
+                const ctx = ensureAudioCtx();
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(170, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + 0.08);
+                g.gain.setValueAtTime(0.16, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.1);
+            } catch (e) {}
+        }
+        function stopTypewriter() {
+            if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
+        }
+        function startTypewriter() {
+            stopTypewriter();
+            let n = 0;
+            typeTimer = setInterval(() => {
+                typeClick();
+                n++;
+                if (n % 6 === 0) carriageReturn();
+            }, 140);
+        }
+        // 打印动画：按收据高度动态决定出纸时长（谱子越长打印越久），结束后执行回调（放音频 / 启用下载）
+        function startReceiptPrint(onDone) {
+            const receipt = document.getElementById('receipt');
+            const printMs = Math.min(6000, Math.max(2400, receipt.scrollHeight * 3.2));
+            receipt.style.animationDuration = printMs + 'ms';
+            receipt.classList.remove('printing');
+            void receipt.offsetWidth;
+            receipt.classList.add('printing');
+            startTypewriter();
+            clearTimeout(printTimer);
+            printTimer = setTimeout(() => {
+                stopTypewriter();
+                if (onDone) onDone();
+            }, printMs + 80);
+        }
+
         function updateReceipt(data) {
             updateDate();
 
@@ -2587,7 +2757,8 @@
 
                 audioPlayerContainer.appendChild(audioPlayer);
                 audioPlayer.load();
-                audioPlayer.play();
+                // 不立即播放：先出纸打印，打完后由 startReceiptPrint 回调统一播放
+                pendingAudioPlayer = audioPlayer;
 
                 // 下载音频按钮事件
                 downloadBtn.onclick = function() {
@@ -2601,11 +2772,17 @@
                 setupRealWaveform();
             }
 
-            // 启用下载BD谱按钮
-            const downloadReceiptBtn = document.getElementById('download-receipt-btn');
-            if (data.bd_image) {
-                downloadReceiptBtn.disabled = false;
-                downloadReceiptBtn.onclick = function() {
+            // 启动出纸动画：打完谱子后才播放口琴音频、才允许下载
+            startReceiptPrint(() => {
+                if (pendingAudioPlayer) {
+                    pendingAudioPlayer.play().catch(() => {});
+                    pendingAudioPlayer = null;
+                }
+                // 启用下载BD谱按钮
+                const downloadReceiptBtn = document.getElementById('download-receipt-btn');
+                if (data.bd_image) {
+                    downloadReceiptBtn.disabled = false;
+                    downloadReceiptBtn.onclick = function() {
                     // 获取收据元素
                     const receipt = document.getElementById('receipt');
 
@@ -2626,7 +2803,8 @@
                         alert('生成收据图片失败，请重试');
                     });
                 };
-            }
+                }
+            });
         }
         
         // 加载历史记录
