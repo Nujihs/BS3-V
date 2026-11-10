@@ -61,15 +61,17 @@ class JianpuToBDConverter:
 
         # 生成完整BD谱图片（包含口琴布局）
         bd_img_path = os.path.join(output_dir, f'bd_notation_{timestamp}.png')
+        played_notes = [n['note_name'] for n in converted_notes if n.get('note_name') and not n.get('is_rest')]
+        played_bds = [n['bd_notation'] for n in converted_notes if n.get('bd_notation') and n['bd_notation'] != '-']
         harmonica_diagram = self.bd_generator.generate_harmonica_diagram(
-            [n['note_name'] for n in converted_notes if n.get('note_name') and not n.get('is_rest')],
+            played_notes,
             self.bd_generator.harmonica_background_image,
-            key_signature
+            key_signature,
+            played_bds=played_bds
         )
         harmonica_diagram.save(bd_img_path)
 
         # 生成单独的口琴孔位图示（用于收据显示）
-        played_notes = [n['note_name'] for n in converted_notes if n.get('note_name') and not n.get('is_rest')]
         harmonica_diagram_path = os.path.join(output_dir, f'harmonica_diagram_{timestamp}.png')
 
         # 检查口琴背景图片是否存在
@@ -77,12 +79,12 @@ class JianpuToBDConverter:
             print(f"[WARNING] 口琴背景图片不存在: {self.bd_generator.harmonica_background_image}")
 
         try:
-            harmonica_diagram = self.bd_generator.generate_harmonica_diagram(played_notes, self.bd_generator.harmonica_background_image, key_signature)
+            harmonica_diagram = self.bd_generator.generate_harmonica_diagram(played_notes, self.bd_generator.harmonica_background_image, key_signature, played_bds=played_bds)
             harmonica_diagram.save(harmonica_diagram_path)
         except Exception as e:
             print(f"[ERROR] 生成口琴图示失败: {str(e)}")
             # 使用默认的口琴图示
-            harmonica_diagram = self.bd_generator.generate_harmonica_diagram(played_notes, None, key_signature)
+            harmonica_diagram = self.bd_generator.generate_harmonica_diagram(played_notes, None, key_signature, played_bds=played_bds)
             harmonica_diagram.save(harmonica_diagram_path)
 
         return {
@@ -115,10 +117,13 @@ class JianpuToBDConverter:
 
         # 保存BD谱图片（包含口琴布局）
         bd_img_path = os.path.join(output_dir, 'bd_notation.png')
+        save_played_notes = [n['note_name'] for n in result['notes'] if n.get('note_name') and not n.get('is_rest')]
+        save_played_bds = [n['bd_notation'] for n in result['notes'] if n.get('bd_notation') and n['bd_notation'] != '-']
         harmonica_diagram = self.bd_generator.generate_harmonica_diagram(
-            [n['note_name'] for n in result['notes'] if n.get('note_name') and not n.get('is_rest')],
+            save_played_notes,
             self.bd_generator.harmonica_background_image,
-            key_signature
+            key_signature,
+            played_bds=save_played_bds
         )
         harmonica_diagram.save(bd_img_path)
         print(f"BD谱图片已保存: {bd_img_path}")

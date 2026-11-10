@@ -203,12 +203,14 @@ class BDGenerator:
 
     def generate_harmonica_diagram(self, highlight_notes: List[str] = None,
                                    background_image_path: Optional[str] = None,
-                                   key_signature: str = 'C') -> Image.Image:
+                                   key_signature: str = 'C',
+                                   played_bds: List[str] = None) -> Image.Image:
         """
         生成口琴指法示意图
-        :param highlight_notes: 需要高亮的音符列表
+        :param highlight_notes: 需要高亮的音符列表（音名，兼容旧逻辑）
         :param background_image_path: 口琴背景图片路径（可选）
         :param key_signature: 简谱调号（如'C', 'G', 'D'等）
+        :param played_bds: 本次演奏的BD记号列表（如 ['1B','3D']），优先用它匹配孔位
         :return: 口琴布局图
         """
         has_background = background_image_path and os.path.exists(background_image_path)
@@ -289,15 +291,28 @@ class BDGenerator:
             blow_note = hole_notes.get('blow', '')
             draw_note = hole_notes.get('draw', '')
 
-            # 吹音区域高亮（上半部分）- 检查音符是否在高亮列表中
-            if highlight_notes and blow_note in highlight_notes:
+            # 演奏判定：优先 BD 记号（可靠），兼容旧音名匹配
+            blow_bd = f"{hole_num}B"
+            draw_bd = f"{hole_num}D"
+            played_set = set(played_bds or [])
+            blow_played = (blow_bd in played_set) or (highlight_notes and blow_note in highlight_notes)
+            draw_played = (draw_bd in played_set) or (highlight_notes and draw_note in highlight_notes)
+
+            # 吹音区域高亮（上半部分）
+            if blow_played:
                 draw.rectangle([x, start_y, x + hole_width, start_y + hole_height//2],
-                              fill=(100, 149, 237, 128), outline='blue', width=2)  # 半透明蓝色
+                              fill=(100, 149, 237, 128), outline=(220, 30, 30, 255), width=3)
+                # 3D 红色凸点
+                cx, cy = x + hole_width//2, start_y + hole_height//4
+                draw.ellipse([cx-8, cy-8, cx+8, cy+8], fill=(220, 30, 30, 235), outline=(255,255,255,255), width=2)
 
             # 吸音区域高亮（下半部分）
-            if highlight_notes and draw_note in highlight_notes:
+            if draw_played:
                 draw.rectangle([x, start_y + hole_height//2, x + hole_width, start_y + hole_height],
-                              fill=(144, 238, 144, 128), outline='green', width=2)  # 半透明绿色
+                              fill=(144, 238, 144, 128), outline=(220, 30, 30, 255), width=3)
+                # 3D 红色凸点
+                cx, cy = x + hole_width//2, start_y + hole_height*3//4
+                draw.ellipse([cx-8, cy-8, cx+8, cy+8], fill=(220, 30, 30, 235), outline=(255,255,255,255), width=2)
 
             # 如果没有背景图片，绘制完整的信息
             if not has_background:
@@ -326,7 +341,7 @@ class BDGenerator:
         legend_y = 20
 
         # 绘制图例背景框（增加高度以容纳调号信息）
-        legend_box_height = 105  # 增加框的高度
+        legend_box_height = 130  # 增加框的高度
         draw.rectangle([legend_x - 10, legend_y - 10, legend_x + 170, legend_y + legend_box_height],
                       fill=(255, 255, 255, 220), outline='black', width=2)
 
@@ -347,6 +362,11 @@ class BDGenerator:
         draw.rectangle([legend_x, legend_y + 75, legend_x + 30, legend_y + 95],
                       fill=(144, 238, 144, 200), outline='green', width=2)
         draw.text((legend_x + 40, legend_y + 77), "吸 (Draw)", fill='black', font=font)
+
+        # 本次演奏红色凸点图例
+        draw.ellipse([legend_x + 10, legend_y + 103, legend_x + 26, legend_y + 119],
+                     fill=(220, 30, 30, 235), outline=(255,255,255,255), width=2)
+        draw.text((legend_x + 40, legend_y + 105), "本次演奏", fill='black', font=font)
 
         # 合并图片
         if has_background:
