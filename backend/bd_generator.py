@@ -226,12 +226,22 @@ class BDGenerator:
         overlay = Image.new('RGBA', (img_width, img_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
 
-        try:
-            font = ImageFont.truetype("simhei.ttf", 16)
-            big_font = ImageFont.truetype("simhei.ttf", 20)
-        except:
-            font = ImageFont.load_default()
-            big_font = ImageFont.load_default()
+        # 字体加载：优先包内自带 simhei（Vercel 无系统中文字体），其次系统字体
+        _FONT_FILES = [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'simhei.ttf'),
+            'simhei.ttf',
+            '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+            '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        ]
+        def _load_cjk_font(size):
+            for _p in _FONT_FILES:
+                try:
+                    return ImageFont.truetype(_p, size)
+                except Exception:
+                    continue
+            return ImageFont.load_default()
+        font = _load_cjk_font(16)
+        big_font = _load_cjk_font(20)
 
         # 如果没有背景图片，绘制完整的口琴布局
         if not has_background:
