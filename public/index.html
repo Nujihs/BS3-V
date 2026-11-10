@@ -556,16 +556,46 @@
         
         .receipt-paper {
             background-color: #FFFFFF;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.30), 0 3px 8px rgba(0, 0, 0, 0.18);
+            position: relative;
+        }
+        /* 热敏纸纤维纹理（极淡，仅屏幕显示，不影响下载离屏副本） */
+        #receipt {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+            /* 纸底部轻微上翘的弧度阴影 */
+            box-shadow: 0 14px 28px rgba(0,0,0,0.30), 0 3px 8px rgba(0,0,0,0.18), inset 0 -22px 22px -22px rgba(0,0,0,0.35);
+            border-radius: 2px 2px 6px 6px;
+        }
+        /* 纸顶部「穿入出纸口」的接触阴影 */
+        #receipt::before {
+            content: '';
+            position: absolute;
+            top: -10px; left: 2px; right: 2px; height: 16px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0) 100%);
+            z-index: 4;
+            pointer-events: none;
+        }
+        /* 底部撕纸毛边（三角锯齿，白底与纸张同色） */
+        #receipt::after {
+            content: '';
+            position: absolute;
+            bottom: -7px; left: 0; right: 0; height: 8px;
+            background:
+                linear-gradient(-45deg, transparent 7px, #FFFFFF 7px) right,
+                linear-gradient(45deg, transparent 7px, #FFFFFF 7px) left;
+            background-size: 14px 8px;
+            background-repeat: repeat-x;
+            z-index: 5;
+            pointer-events: none;
         }
 
         /* ===== 打印机动效 ===== */
         .printer-mouth {
             width: 320px;
             height: 26px;
-            background: linear-gradient(#3a3a3a 0%, #111 50%, #000 100%);
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+            background: linear-gradient(180deg, #4a4a4a 0%, #161616 45%, #000 100%);
+            border-radius: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.25), inset 0 -3px 5px rgba(0,0,0,0.9);
             position: relative;
             z-index: 3;
             margin: 0 auto;
@@ -573,13 +603,13 @@
         .printer-mouth::after {
             content: '';
             position: absolute;
-            left: 8%; right: 8%;
+            left: 9%; right: 9%;
             top: 50%;
             height: 6px;
             transform: translateY(-50%);
             background: #000;
             border-radius: 3px;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.9);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,1), 0 1px 0 rgba(255,255,255,0.12);
         }
         /* 纸张从出纸口逐渐吐出：clip-path 从底部 100% 遮罩到完全显示 */
         #receipt.printing {
@@ -600,28 +630,30 @@
             flex-direction: column;
             align-items: center;
         }
-        /* 顶部灯箱招牌 */
+        /* 顶部灯箱招牌（发光白盒） */
         .printer-top-light {
             width: 340px;
             height: 54px;
-            background: linear-gradient(180deg, #fafafa 0%, #e2e2e2 55%, #c4c4c4 100%);
+            background: linear-gradient(180deg, #ffffff 0%, #f3f3f3 55%, #dcdcdc 100%);
             border: 3px solid #1a1a1a;
             border-radius: 12px 12px 4px 4px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35), inset 0 2px 5px rgba(255,255,255,0.9);
+            box-shadow: 0 0 26px rgba(255,255,255,0.85), 0 8px 20px rgba(0,0,0,0.40), inset 0 2px 5px #ffffff;
             display: flex; align-items: center; justify-content: center;
             font-weight: 900; font-size: 20px; letter-spacing: 5px;
             color: #111;
-            text-shadow: 0 0 10px rgba(255,255,255,0.95);
+            text-shadow: 0 0 12px rgba(255,255,255,1);
             position: relative; z-index: 5;
         }
-        /* 金属机身 */
+        /* 镀铬金属机身 */
         .printer-body {
             width: 380px;
-            background: linear-gradient(180deg, #ececec 0%, #c9c9c9 45%, #a3a3a3 100%);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 18%),
+                linear-gradient(180deg, #f2f2f2 0%, #cfcfcf 28%, #9b9b9b 52%, #bdbdbd 78%, #7e7e7e 100%);
             border: 3px solid #1a1a1a;
             border-top: none;
             border-radius: 0 0 20px 20px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.42);
+            box-shadow: 0 14px 34px rgba(0,0,0,0.45), inset 0 -6px 12px rgba(0,0,0,0.25), inset 0 3px 6px rgba(255,255,255,0.6);
             padding: 20px 0 26px;
             display: flex; flex-direction: column; align-items: center;
             position: relative;
@@ -2702,6 +2734,33 @@
             }, printMs + 80);
         }
 
+        // 下载清晰版BD谱：克隆收据内容到离屏纯白副本再截图，
+        // 这样屏幕上的纸纹/毛边/阴影等做旧效果不会混入下载图，中文也走浏览器原生渲染
+        function downloadCleanReceipt() {
+            const receipt = document.getElementById('receipt');
+            const ghost = document.createElement('div');
+            ghost.style.cssText = 'position:fixed;left:-9999px;top:0;width:300px;background:#ffffff;padding:26px 22px;color:#000;font-family:"Courier New",Courier,monospace;line-height:1.6;';
+            ghost.innerHTML = receipt.innerHTML;
+            // 离屏副本里所有隐藏区块直接移除（避免空白留白）
+            ghost.querySelectorAll('.hidden').forEach(el => el.remove());
+            document.body.appendChild(ghost);
+            html2canvas(ghost, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#FFFFFF'
+            }).then(canvas => {
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = 'bd_notation_receipt.png';
+                a.click();
+                document.body.removeChild(ghost);
+            }).catch(err => {
+                console.error('生成收据图片失败:', err);
+                alert('生成收据图片失败，请重试');
+                if (document.body.contains(ghost)) document.body.removeChild(ghost);
+            });
+        }
+
         function updateReceipt(data) {
             updateDate();
 
@@ -2782,27 +2841,7 @@
                 const downloadReceiptBtn = document.getElementById('download-receipt-btn');
                 if (data.bd_image) {
                     downloadReceiptBtn.disabled = false;
-                    downloadReceiptBtn.onclick = function() {
-                    // 获取收据元素
-                    const receipt = document.getElementById('receipt');
-
-                    // 使用html2canvas将收据转换为图片
-                    html2canvas(receipt, {
-                        scale: 2,  // 提高分辨率
-                        useCORS: true,
-                        backgroundColor: '#FFFFFF'
-                    }).then(canvas => {
-                        // 转换为数据URL并下载
-                        const imageData = canvas.toDataURL('image/png');
-                        const a = document.createElement('a');
-                        a.href = imageData;
-                        a.download = 'bd_notation_receipt.png';
-                        a.click();
-                    }).catch(err => {
-                        console.error('生成收据图片失败:', err);
-                        alert('生成收据图片失败，请重试');
-                    });
-                };
+                    downloadReceiptBtn.onclick = downloadCleanReceipt;
                 }
             });
         }
@@ -2959,27 +2998,7 @@
                     const downloadReceiptBtn = document.getElementById('download-receipt-btn');
                     if (data.bd_image) {
                         downloadReceiptBtn.disabled = false;
-                        downloadReceiptBtn.onclick = function() {
-                            // 获取收据元素
-                            const receipt = document.getElementById('receipt');
-
-                            // 使用html2canvas将收据转换为图片
-                            html2canvas(receipt, {
-                                scale: 2,  // 提高分辨率
-                                useCORS: true,
-                                backgroundColor: '#FFFFFF'
-                            }).then(canvas => {
-                                // 转换为数据URL并下载
-                                const imageData = canvas.toDataURL('image/png');
-                                const a = document.createElement('a');
-                                a.href = imageData;
-                                a.download = 'bd_notation_receipt.png';
-                                a.click();
-                            }).catch(err => {
-                                console.error('生成收据图片失败:', err);
-                                alert('生成收据图片失败，请重试');
-                            });
-                        };
+                        downloadReceiptBtn.onclick = downloadCleanReceipt;
                     }
 
                     currentRecordId = recordId;
